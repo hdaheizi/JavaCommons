@@ -37,40 +37,40 @@ public abstract class DefaultAIUnit implements EventHandler {
 
 	/** 战斗中id */
 	public int id;
-	
+
 	/** 成员静态id */
 	public int memberId;
-	
+
 	/** 势力 攻击方/防守方 */
 	public int side;
-	
+
 	/** 所处房间 */
 	public FightRoom room;
-	
+
 	/** 状态机 */
 	public GSM gsm = new GSM();
-	
+
 	/** 事件代理器 */
 	protected EventAgent eventAgent = new EventAgent(this);
-	
+
 	/** buff列表 */
 	protected List<Buff> buffList = new LinkedList<>();
-	
+
 	/** 攻击效果列表 */
 	public List<Tuple<String, Integer>> effectList = new ArrayList<>();
-	
+
 	/** 攻击效果参数map */
 	public Map<String, double[]> paramMap = new HashMap<>();
-	
+
 	/** 攻击属性map */
 	public Map<String, Double> attributeMap = new HashMap<>();
-	
+
 	/** 技能map */
 	public Map<Integer, SkillAttribute> skillMap = new HashMap<>();
-	
+
 	/** 潜能列表 */
 	public Pot[] pots = new Pot[0];
-	
+
 	/** 坐标x */
 	public int x;
 	/** 坐标y */
@@ -79,7 +79,7 @@ public abstract class DefaultAIUnit implements EventHandler {
 	public int attMethod;
 	/** 查找方法 */
 	public int findMethod;
-	
+
 	/** 血量上限 */
 	public int maxHp;	
 	/** 魔法上限 */
@@ -88,7 +88,7 @@ public abstract class DefaultAIUnit implements EventHandler {
 	public int hp;
 	/** 怒气 */
 	public int mp;
-	
+
 	/** 物理攻击 */
 	public int att;
 	/** 物理防御 */
@@ -103,15 +103,15 @@ public abstract class DefaultAIUnit implements EventHandler {
 	public int hit;
 	/** 闪避等级 */
 	public int dodge;
-	
+
 	/** 怒气转化率 */
 	public float angerConv;
-	
+
 	/** 暴击比 */
 	public double critRatio;
 	/** 暴击伤害 */
 	public int critDam;
-	
+
 	/** 攻击长度 */
 	public int attLen;
 	/** y轴上的优先级 */
@@ -122,7 +122,7 @@ public abstract class DefaultAIUnit implements EventHandler {
 	public float moveSpeed = 1f;
 	/** 攻击速度 */
 	public float attSpeed = 1f;
-	
+
 	/** 是否自动释放技能 */
 	public boolean autoPlaySkill;
 	/** 隐身计数器 */
@@ -130,8 +130,8 @@ public abstract class DefaultAIUnit implements EventHandler {
 	/** 睡眠计数器 */
 	public int sleepCounter = 0;
 
-	
-	
+
+
 	/**
 	 * 执行帧运算
 	 * @param dt
@@ -142,16 +142,16 @@ public abstract class DefaultAIUnit implements EventHandler {
 			// 已经死亡
 			return;
 		}
-		
+
 		// 更新事件
 		eventAgent.update(dt);
-		
+
 		// 更新buff
 		Buff[] buffArray = buffList.toArray(new Buff[0]);
 		for(Buff buff : buffArray){
 			buff.update(dt);
 		}
-		
+
 		// 主动更新
 		if(!isSleep()){
 			// 计算自己的时钟
@@ -159,8 +159,8 @@ public abstract class DefaultAIUnit implements EventHandler {
 			activeUpdate(dt);
 		}
 	}
-	
-	
+
+
 	/**
 	 * 主动更新
 	 * @param dt
@@ -179,9 +179,9 @@ public abstract class DefaultAIUnit implements EventHandler {
 			}
 		}
 	}
-	
-	
-	
+
+
+
 	/**
 	 * @see com.hdaheizi.base.fight.event.EventHandler#addEvent(com.hdaheizi.base.fight.event.FightEvent)
 	 */
@@ -189,7 +189,7 @@ public abstract class DefaultAIUnit implements EventHandler {
 	public void addEvent(FightEvent event){
 		eventAgent.addEvent(event);
 	}
-	
+
 
 	/**
 	 * @see com.hdaheizi.base.fight.event.EventHandler#handleEvent(com.hdaheizi.base.fight.event.FightEvent)
@@ -203,7 +203,7 @@ public abstract class DefaultAIUnit implements EventHandler {
 				return;
 			}
 		}
-		
+
 		// 触发潜能
 		for(Pot pot : pots){
 			pot.handleEvent(event);
@@ -211,7 +211,7 @@ public abstract class DefaultAIUnit implements EventHandler {
 				return;
 			}
 		}
-		
+
 		// 状态机处理
 		gsm.handleEvent(event);
 		if(event.isExpire){
@@ -238,8 +238,8 @@ public abstract class DefaultAIUnit implements EventHandler {
 			addBuff(buff);
 		}
 	}
-	
-	
+
+
 	/**
 	 * 处理受击
 	 * @param dam 伤害值
@@ -255,7 +255,7 @@ public abstract class DefaultAIUnit implements EventHandler {
 		if(!att.succAttack(this, attType, inner, source)){
 			return -1;
 		}
-		
+
 		// 闪避处理
 		if(attType == FightConstants.ATT_TYPE_NORM 
 				&& !isSleep()
@@ -266,7 +266,7 @@ public abstract class DefaultAIUnit implements EventHandler {
 			}
 			return -1;
 		}
-		
+
 		// 暴击处理
 		if(attType == FightConstants.ATT_TYPE_NORM){
 			if(RandomUtil.nextDouble() < FightFormula.calcCritRatio(att.crip)){
@@ -280,14 +280,14 @@ public abstract class DefaultAIUnit implements EventHandler {
 
 		// 攻击方计算伤害加成
 		att.calcRealDam(dam, att, this, attType, inner, source);
-		
+
 		// 造成伤害
 		dam = handleDam(dam, attType, att, inner, source);
-		
+
 		return dam;
 	}
-	
-	
+
+
 	/**
 	 * 造成伤害
 	 * @param dam 伤害值
@@ -301,17 +301,17 @@ public abstract class DefaultAIUnit implements EventHandler {
 	public int handleDam(int dam, int attType, DefaultAIUnit att, StringBuilder inner, Object source){
 		// 受击方计算伤害
 		dam = this.calcRealDam(dam, att, this, attType, inner, source);
-		
+
 		// 造成伤害
 		dam = reduceHp(dam, inner);
-		
+
 		// 处理怒气
 		handleHittedMp(dam, att, attType);
-		
+
 		return dam;
 	}
-	
-	
+
+
 	/**
 	 * 处理受击后的怒气
 	 * @param dam
@@ -332,7 +332,7 @@ public abstract class DefaultAIUnit implements EventHandler {
 		}
 	}
 
-	
+
 	/**
 	 * 添加buff
 	 * @param buff
@@ -363,8 +363,8 @@ public abstract class DefaultAIUnit implements EventHandler {
 		// 进入状态
 		buff.onEnter();
 	}
-	
-	
+
+
 	/**
 	 * 是否存在指定buff
 	 * @param name
@@ -380,7 +380,7 @@ public abstract class DefaultAIUnit implements EventHandler {
 		return false;
 	}
 
-	
+
 	/**
 	 * 移除指定buff
 	 * @param buff
@@ -396,8 +396,8 @@ public abstract class DefaultAIUnit implements EventHandler {
 			}
 		}
 	}
-	
-	
+
+
 	/**
 	 * 按名称移除buff
 	 * @param name
@@ -413,8 +413,8 @@ public abstract class DefaultAIUnit implements EventHandler {
 			}
 		}
 	}
-	
-	
+
+
 	/**
 	 * 按类型移除buff
 	 * @param type
@@ -430,8 +430,8 @@ public abstract class DefaultAIUnit implements EventHandler {
 			}
 		}
 	}
-	
-	
+
+
 	/**
 	 * 减少血量
 	 * @param dam
@@ -449,8 +449,8 @@ public abstract class DefaultAIUnit implements EventHandler {
 		}
 		return _hpDown;
 	}
-	
-	
+
+
 	/**
 	 * 恢复血量
 	 * @param hpUp
@@ -462,8 +462,8 @@ public abstract class DefaultAIUnit implements EventHandler {
 		hp +=  _hpUp;
 		return _hpUp;
 	}
-	
-	
+
+
 	/**
 	 * 减少怒气
 	 * @param mpDown
@@ -478,8 +478,8 @@ public abstract class DefaultAIUnit implements EventHandler {
 		}
 		return _mpDown;
 	}
-	
-	
+
+
 	/**
 	 * 恢复能量
 	 * @param mpUp
@@ -494,8 +494,8 @@ public abstract class DefaultAIUnit implements EventHandler {
 		}
 		return _mpUp;
 	}
-	
-	
+
+
 	/**
 	 * 移动到指定位置
 	 * @param toX
@@ -508,8 +508,8 @@ public abstract class DefaultAIUnit implements EventHandler {
 		this.x = toX;
 		this.y = toY;
 	}
-	
-	
+
+
 	/**
 	 * 是否可以释放技能
 	 * @param skill
@@ -523,8 +523,8 @@ public abstract class DefaultAIUnit implements EventHandler {
 				&& !isSleep()
 				&& !(gsm.getCurState() instanceof SkillState);
 	}
-	
-	
+
+
 	/**
 	 * 是否存在有效攻击目标
 	 * @param attType
@@ -542,8 +542,8 @@ public abstract class DefaultAIUnit implements EventHandler {
 		}
 		return false;
 	}
-	
-	
+
+
 	/**
 	 * 是否可以攻击
 	 * @param target
@@ -557,8 +557,8 @@ public abstract class DefaultAIUnit implements EventHandler {
 		}
 		return true;
 	}
-	
-	
+
+
 	/**
 	 * 处理死亡
 	 * @Date 2016年5月22日 下午10:37:46
@@ -570,15 +570,15 @@ public abstract class DefaultAIUnit implements EventHandler {
 			buff.onExit();
 		}
 		buffList.clear();
-		
+
 		// 退出状态机
 		gsm.changeState(null);
 		// 释放位置
 		room.releasePos(x, y);	
 	}
 
-	
-	
+
+
 	/**
 	 * 是否死亡
 	 * @return
@@ -587,8 +587,8 @@ public abstract class DefaultAIUnit implements EventHandler {
 	public boolean isDead() {
 		return hp <= 0;
 	}
-	
-	
+
+
 	/**
 	 * 是否睡眠
 	 * @return
@@ -597,8 +597,8 @@ public abstract class DefaultAIUnit implements EventHandler {
 	public boolean isSleep() {
 		return sleepCounter > 0;
 	}
-	
-	
+
+
 	/**
 	 * 睡眠
 	 * @Date 2016年9月13日 上午1:09:12
@@ -606,8 +606,8 @@ public abstract class DefaultAIUnit implements EventHandler {
 	public void sleep(){
 		sleepCounter++;
 	}
-	
-	
+
+
 	/**
 	 * 唤醒
 	 * @Date 2016年9月13日 上午1:09:06
@@ -617,8 +617,8 @@ public abstract class DefaultAIUnit implements EventHandler {
 			sleepCounter--;
 		}
 	}
-	
-	
+
+
 	/**
 	 * 是否可见
 	 * @return
@@ -627,8 +627,8 @@ public abstract class DefaultAIUnit implements EventHandler {
 	public boolean isVisible() {
 		return invisibleCounter <= 0;
 	}
-	
-	
+
+
 	/**
 	 * 是否命中
 	 * @param target 受击方
@@ -645,14 +645,14 @@ public abstract class DefaultAIUnit implements EventHandler {
 				return false;
 			}
 		}
-		
+
 		// 受击方buff判定
 		for(Buff buff : target.buffList.toArray(new Buff[0])){
 			if(!buff.succAttack(this, target, attType, inner, source)){
 				return false;
 			}
 		}
-		
+
 		// 受击方潜能判定
 		for(Pot pot : pots){
 			if(!pot.succAttack(this, target, attType, inner, source)){
@@ -661,8 +661,8 @@ public abstract class DefaultAIUnit implements EventHandler {
 		}
 		return true;
 	}
-	
-	
+
+
 	/**
 	 * 计算真实伤害
 	 * @param dam 伤害大小

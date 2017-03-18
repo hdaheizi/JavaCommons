@@ -8,10 +8,10 @@ import com.hdaheizi.base.fight.skill.SkillAttribute;
  * @Date 2016年5月23日 上午1:18:56
  */
 public class SkillEvent extends FightEvent {
-	
+
 	/** 技能属性配置 */
 	public SkillAttribute skill;
-	
+
 
 	/**
 	 * 构造函数

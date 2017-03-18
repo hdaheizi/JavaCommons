@@ -16,7 +16,7 @@ public class MoveState extends AbstractGameState {
 	private int toX;
 	/** 目标Y */
 	private int toY;
-	
+
 	/**
 	 * 构造函数
 	 * @param hero
@@ -39,8 +39,8 @@ public class MoveState extends AbstractGameState {
 		hero.moveTo(toX, toY);
 		hero.room.notifyMsg(MessageFormatter.format("{0}|{1}|{2}|{3}|{4}", hero.id, name, toX, toY, cd));
 	}
-	
-	
+
+
 	/**
 	 * @see com.hdaheizi.base.fight.fsm.GameState#update(long)
 	 */

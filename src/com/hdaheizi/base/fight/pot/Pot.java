@@ -14,14 +14,14 @@ public abstract class Pot {
 
 	/** 拥有者 */
 	protected DefaultAIUnit hero;
-	
+
 	/** 潜能Id */
 	protected int potId;
-	
+
 	/** 相关参数 */
 	protected double[] values;
-	
-	
+
+
 	/**
 	 * 构造函数
 	 * @param hero
@@ -36,8 +36,8 @@ public abstract class Pot {
 			values[i] = Double.valueOf(params[i]);
 		}
 	}
-	
-	
+
+
 	/**
 	 * 计算概率事件是否触发
 	 * @param prob
@@ -47,8 +47,8 @@ public abstract class Pot {
 	protected static boolean doRandom(double prob){
 		return RandomUtil.nextDouble() < prob;
 	}
-	
-	
+
+
 	/**
 	 * 处理事件
 	 * @param event
@@ -56,8 +56,8 @@ public abstract class Pot {
 	 */
 	public void handleEvent(FightEvent event){
 	}
-	
-	
+
+
 	/**
 	 * 是否命中
 	 * @param att 攻击方
@@ -72,8 +72,8 @@ public abstract class Pot {
 			int attType, StringBuilder inner, Object source) {
 		return true;
 	}
-	
-	
+
+
 	/**
 	 * 计算伤害
 	 * @param dam 伤害大小

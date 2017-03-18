@@ -9,7 +9,7 @@ import com.hdaheizi.base.fight.unit.DefaultAIUnit;
  * @Date 2016年5月22日 下午10:31:08
  */
 public interface FightSkill {
-	
+
 	/**
 	 * 获取技能属性配置
 	 * @return
@@ -33,7 +33,7 @@ public interface FightSkill {
 	 * @Date 2016年7月16日 上午2:51:22
 	 */
 	DefaultAIUnit[] findTargets(String method);
-	
+
 	/**
 	 * 释放近身攻击
 	 * @param times 施法次数
@@ -41,7 +41,7 @@ public interface FightSkill {
 	 * @Date 2016年7月16日 下午4:43:28
 	 */
 	void playSkill(int times, double ratio);
-	
+
 	/**
 	 * 释放弹道攻击
 	 * @param times 施法次数
@@ -49,7 +49,7 @@ public interface FightSkill {
 	 * @Date 2016年8月18日 下午10:26:24
 	 */
 	void flySkill(int times, int flyId);
-	
+
 	/**
 	 * 处理技能效果
 	 * @param key
@@ -57,7 +57,7 @@ public interface FightSkill {
 	 * @Date 2016年5月22日 下午10:32:06
 	 */
 	void handleEffect(String key, int param);
-	
+
 	/**
 	 * 是否可以被打断
 	 * @param event
@@ -65,7 +65,7 @@ public interface FightSkill {
 	 * @Date 2016年7月19日 下午9:48:21
 	 */
 	boolean canBeBreak(BreakEvent event);
-	
+
 	/**
 	 * 技能被打断时触发
 	 * @Date 2016年7月17日 上午1:42:01
@@ -84,7 +84,7 @@ public interface FightSkill {
 	 * @Date 2016年8月18日 下午10:37:47
 	 */
 	DefaultAIUnit getSourceHero();
-	
+
 	/**
 	 * 进行技能攻击
 	 * @param target
@@ -94,5 +94,5 @@ public interface FightSkill {
 	 * @Date 2016年8月28日 上午3:44:33
 	 */
 	int doSkillAttack(DefaultAIUnit target, double ratio, StringBuilder inner);
-	
+
 }

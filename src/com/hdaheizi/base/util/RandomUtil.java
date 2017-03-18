@@ -10,9 +10,9 @@ import com.reign.util.random.RandomUtils;
  * @Date 2016年6月16日 上午2:33:49
  */
 public class RandomUtil {
-	
+
 	private static final Random random = new Random();
-	
+
 	/**
 	 * 获得一个[0,1)的随机数
 	 * @return 
@@ -20,7 +20,7 @@ public class RandomUtil {
 	public static double nextDouble() {
 		return random.nextDouble();
 	}
-	
+
 	/**
 	 * 获得一个[0,max)的随机数
 	 * @param max
@@ -29,7 +29,7 @@ public class RandomUtil {
 	public static double nextDouble(double max) {
 		return random.nextDouble() * max;
 	}
-	
+
 	/**
 	 * 获得一个[min, max)的随机数
 	 * @param min
@@ -39,7 +39,7 @@ public class RandomUtil {
 	public static double nextDouble(double min, double max) {
 		return min + random.nextDouble() * (max - min);
 	}
-	
+
 	/**
 	 * 获得一个随机整数
 	 * @return
@@ -47,7 +47,7 @@ public class RandomUtil {
 	public static int nextInt() {
 		return random.nextInt();
 	}
-	
+
 	/**
 	 * 获得[0,n)随机整数
 	 * @return
@@ -55,7 +55,7 @@ public class RandomUtil {
 	public static int nextInt(int n) {
 		return random.nextInt(n);
 	}
-	
+
 	/**
 	 * 获得[min,max)的随机整数
 	 * @param min
@@ -65,7 +65,7 @@ public class RandomUtil {
 	public static int nextInt(int min, int max) {
 		return min + random.nextInt(max - min);
 	}
-	
+
 	/**
 	 * 获得[0,1)的随机float
 	 * @return
@@ -73,7 +73,7 @@ public class RandomUtil {
 	public static float nextFloat() {
 		return random.nextFloat();
 	}
-	
+
 	/**
 	 * 随机获得true或false
 	 * @return
@@ -81,7 +81,7 @@ public class RandomUtil {
 	public static boolean nextBoolean() {
 		return random.nextBoolean();
 	}
-	
+
 	/**
 	 * 随机数组
 	 * @param array
@@ -94,7 +94,7 @@ public class RandomUtil {
 			swap(array, i, index);
 		}
 	}
-	
+
 	/**
 	 * 交换数据
 	 * @param <T>
@@ -107,7 +107,7 @@ public class RandomUtil {
 		array[index1] = array[index2];
 		array[index2] = temp;
 	}
-	
+
 	/**
 	 * 获取大中小
 	 * 概率相加之和必须为100!

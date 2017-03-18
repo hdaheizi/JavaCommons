@@ -10,7 +10,7 @@ import com.hdaheizi.base.sdata.Potential;
  */
 public class PotFactory {
 
-	
+
 	/**
 	 * 创建潜能
 	 * @param potential
@@ -21,11 +21,11 @@ public class PotFactory {
 		switch(potential.getName()){
 		case "qiangligedang":
 			return new Qiangligedang(hero, potential);
-			
+
 		default:
-			
+
 		}
-		
+
 		return null;
 	}
 }

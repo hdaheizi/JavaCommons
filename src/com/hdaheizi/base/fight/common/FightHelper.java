@@ -6,6 +6,6 @@ package com.hdaheizi.base.fight.common;
  * @Date 2016年7月11日 上午12:01:05
  */
 public class FightHelper {
-	
-	
+
+
 }

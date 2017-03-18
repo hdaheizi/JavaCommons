@@ -11,14 +11,14 @@ public class GSM {
 
 	/** 当前状态 */
 	private GameState curState;
-	
-	
+
+
 	/**
 	 * 构造函数
 	 */
 	public GSM(){}
-	
-	
+
+
 	/**
 	 * 当前状态
 	 * @return
@@ -27,8 +27,8 @@ public class GSM {
 	public GameState getCurState(){
 		return curState;
 	}
-	
-	
+
+
 	/**
 	 * 设置当前状态
 	 * @param state
@@ -37,8 +37,8 @@ public class GSM {
 	public void setCurState(GameState state){
 		this.curState = state;
 	}
-	
-	
+
+
 	/**
 	 * 帧更新
 	 * @param dt
@@ -50,8 +50,8 @@ public class GSM {
 		}
 		curState.update(dt);
 	}
-	
-	
+
+
 	/**
 	 * 切换状态
 	 * @param nextState
@@ -61,14 +61,14 @@ public class GSM {
 		if(null != curState){
 			curState.onExit();
 		}
-		
+
 		curState = nextState;
 		if(curState != null){
 			curState.onEnter();
 		}
 	}
-	
-	
+
+
 	/**
 	 * 处理事件
 	 * @param event
@@ -79,5 +79,5 @@ public class GSM {
 			curState.handleEvent(event);
 		}
 	}
-	
+
 }

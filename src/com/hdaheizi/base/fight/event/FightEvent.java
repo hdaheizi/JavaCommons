@@ -10,7 +10,7 @@ public abstract class FightEvent{
 
 	/** 发送延时(ms) */
 	public int delay = 0;
-	
+
 	/** 是否失效 */
 	public boolean isExpire = false;
 

@@ -12,22 +12,22 @@ import com.hdaheizi.base.log.Logger;
  * @Date 2016年3月30日 上午1:28:59
  */
 public class FightSchedule {
-	
+
 	/** log */
 	private  static final Logger log = new DefaultLogger("FightSchedule");
 
 	/** 实例 */
 	private static final FightSchedule instantce = new FightSchedule();
-	
+
 	/** 每帧时长 */
 	private static final long interval = 1000 / FightConstants.FRAME_RATE;
-	
+
 	/** 执行线程 */
 	private Thread thread;
-	
+
 	/** 战场列表 */
 	private CopyOnWriteArrayList<FightRoom> roomList;
-	
+
 	/**
 	 * 构造函数
 	 */
@@ -36,8 +36,8 @@ public class FightSchedule {
 		thread.start();
 		roomList = new CopyOnWriteArrayList<>();
 	}
-	
-	
+
+
 	/**
 	 * 获取实例
 	 * @return
@@ -46,7 +46,7 @@ public class FightSchedule {
 	public static FightSchedule getInstance(){
 		return instantce;
 	}
-	
+
 
 	/**
 	 * 执行帧运算
@@ -62,8 +62,8 @@ public class FightSchedule {
 			}
 		}
 	}
-	
-	
+
+
 	/**
 	 * 加入战斗
 	 * @param room
@@ -72,8 +72,8 @@ public class FightSchedule {
 	public void schedule(FightRoom room){
 		roomList.add(room);
 	}
-	
-	
+
+
 	/**
 	 * 移除战斗
 	 * @param room
@@ -82,9 +82,9 @@ public class FightSchedule {
 	public void unschedule(FightRoom room){
 		roomList.remove(room);
 	}
-	
-	
-	
+
+
+
 	/**
 	 * 执行线程
 	 * @author daheiz
@@ -119,5 +119,5 @@ public class FightSchedule {
 			}
 		}
 	}
-	
+
 }

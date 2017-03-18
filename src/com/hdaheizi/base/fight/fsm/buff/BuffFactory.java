@@ -10,7 +10,7 @@ import com.hdaheizi.base.fight.unit.DefaultAIUnit;
  * @Date 2016年5月22日 下午5:11:27
  */
 public class BuffFactory {
-	
+
 	/**
 	 * 创建buff
 	 * @param buffName

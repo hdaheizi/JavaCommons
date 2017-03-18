@@ -16,25 +16,25 @@ import com.hdaheizi.base.util.MessageFormatter;
  * @Date 2016年6月6日 下午11:08:37
  */
 public class SkillState extends AbstractGameState {
-	
+
 	/** 空闲cd */
 	private int normCd;
-	
+
 	/** 起手cd */
 	private int prepCd;
-	
+
 	/** 技能 */
 	private FightSkill skill;
-	
+
 	/** 技能效果迭代器 */
 	private Iterator<Tuple<String, Integer>> iterator;
-	
+
 	/** 前一个状态 */
 	private GameState preState;
-	
+
 	/** 已攻击次数 */
 	private int attTimes;
-	
+
 
 	/**
 	 * 构造函数
@@ -49,8 +49,8 @@ public class SkillState extends AbstractGameState {
 		this.preState = preState;
 		this.attTimes = 0;
 	}
-	
-	
+
+
 	/**
 	 * @see com.hdaheizi.base.fight.fsm.GameState#update(long)
 	 */
@@ -64,7 +64,7 @@ public class SkillState extends AbstractGameState {
 			prepCd -= dt;
 			return;
 		}
-		
+
 		while(iterator.hasNext()){
 			Tuple<String, Integer> effect = iterator.next();
 			String key = effect.left;
@@ -107,8 +107,8 @@ public class SkillState extends AbstractGameState {
 		// 恢复状态
 		recovState();
 	}
-	
-	
+
+
 	/**
 	 * 恢复到释放技能前的状态
 	 * @Date 2016年7月17日 上午1:19:00
@@ -120,8 +120,8 @@ public class SkillState extends AbstractGameState {
 			hero.gsm.changeState(new IdleState(hero, 0));
 		}
 	}
-	
-	
+
+
 	/**
 	 * @see com.hdaheizi.base.fight.fsm.AbstractGameState#onExit()
 	 */
@@ -131,8 +131,8 @@ public class SkillState extends AbstractGameState {
 		skill.onOver();
 		super.onExit();
 	}
-	
-	
+
+
 	/**
 	 * @see com.hdaheizi.base.fight.fsm.AbstractGameState#handleEvent(com.hdaheizi.base.fight.event.FightEvent)
 	 */
@@ -148,5 +148,5 @@ public class SkillState extends AbstractGameState {
 			}
 		}
 	}
-	
+
 }

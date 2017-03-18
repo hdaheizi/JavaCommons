@@ -10,14 +10,14 @@ import com.hdaheizi.base.fight.unit.DefaultAIUnit;
  * @Date 2016年7月17日 下午3:44:26
  */
 public class XuanyunBuff extends CommBuff {
-	
+
 	/** 定身时间 */
 	protected int cd;
-	
+
 	/** 打断级别 */
 	protected int breakLv;
 
-	
+
 	/**
 	 * 构造函数
 	 * @param buffName
@@ -32,7 +32,7 @@ public class XuanyunBuff extends CommBuff {
 		this.breakLv = doubleToInt(params[1]);
 	}
 
-	
+
 	/**
 	 * @see com.hdaheizi.base.fight.fsm.buff.CommBuff#onEnter()
 	 */
@@ -42,8 +42,8 @@ public class XuanyunBuff extends CommBuff {
 		hero.sleep();
 		hero.handleEvent(new BreakEvent(breakLv, skill));
 	}
-	
-	
+
+
 	/**
 	 * @see com.hdaheizi.base.fight.fsm.buff.CommBuff#onExit()
 	 */
@@ -52,8 +52,8 @@ public class XuanyunBuff extends CommBuff {
 		hero.wakeUp();
 		super.onExit();
 	}
-	
-	
+
+
 	/**
 	 * @see com.hdaheizi.base.fight.fsm.buff.CommBuff#mixBuff(com.hdaheizi.base.fight.fsm.buff.Buff)
 	 */
@@ -69,8 +69,8 @@ public class XuanyunBuff extends CommBuff {
 		}
 		return false;
 	}
-	
-	
+
+
 	/**
 	 * @see com.hdaheizi.base.fight.fsm.GameState#update(long)
 	 */
@@ -81,5 +81,5 @@ public class XuanyunBuff extends CommBuff {
 			hero.removeBuff(this);
 		}
 	}
-	
+
 }

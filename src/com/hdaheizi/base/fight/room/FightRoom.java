@@ -27,25 +27,25 @@ public class FightRoom extends Room implements EventHandler{
 
 	/** 战斗单元id生成器 */
 	protected AtomicInteger id = new AtomicInteger();
-	
+
 	/** 战斗历时时长 */
 	protected long roomTime;
-	
+
 	/** 事件代理器 */
 	protected EventAgent eventAgent = new EventAgent(this);
-	
+
 	/** 消息列表 */
 	protected List<String> msgList = new LinkedList<>();
 
 	/** 防守方 */
 	protected List<DefaultAIUnit> attList;
-	
+
 	/** 攻击方 */
 	protected List<DefaultAIUnit> defList;
-	
+
 	/** 坐标矩阵 */
 	protected int[][] posArray;
-	
+
 	/** 英雄排序器 -- 攻击长度从小到大，y轴优先级从高到低 */
 	protected Comparator<DefaultAIUnit> HERO_COMPARATOR = new Comparator<DefaultAIUnit>() {
 
@@ -60,7 +60,7 @@ public class FightRoom extends Room implements EventHandler{
 			return o1.attLen - o2.attLen;
 		}
 	};
-	
+
 	/** Y的搜索方法 */
 	public static final int[][] searchY = new int[][]{
 		{},
@@ -71,20 +71,20 @@ public class FightRoom extends Room implements EventHandler{
 		{0, -1,  1, -2, -3, -4},
 		{0, -1, -2, -3, -4, -5}
 	};
-	
-	
+
+
 	/** 受击基础能量 */
 	public int hittedMp;
-	
+
 	/** 普攻击杀获得能量 */
 	public int normAttKillMp;
-	
+
 	/** 技能击杀获得能量 */
 	public int skillKillMp;
 
-	
-	
-	
+
+
+
 	/**
 	 * 构造函数
 	 * @Date 2016年6月10日 下午5:08:12
@@ -95,8 +95,8 @@ public class FightRoom extends Room implements EventHandler{
 		this.defList = defList;
 		posArray = new int[FightConstants.ROOM_WIDTH + 2][FightConstants.ROOM_HEIGHT + 2];
 	}
-	
-	
+
+
 	/**
 	 * 准备开战前的初始化工作
 	 * @Date 2016年7月17日 上午12:37:04
@@ -108,8 +108,8 @@ public class FightRoom extends Room implements EventHandler{
 		normAttKillMp = 10;
 		skillKillMp = 20;
 	}
-	
-	
+
+
 	/**
 	 * 初始化战斗单元
 	 * @param heroList
@@ -128,9 +128,9 @@ public class FightRoom extends Room implements EventHandler{
 			hero.gsm.setCurState(new IdleState(hero, 0));
 		}
 	}
-	
-	
-	
+
+
+
 	/**
 	 * 执行帧运算
 	 * @param dt
@@ -154,11 +154,11 @@ public class FightRoom extends Room implements EventHandler{
 			int winSide = checkEnd(attList) ? FightConstants.FORCE_DEF : FightConstants.FORCE_ATT;
 			endFight(winSide);
 		}
-		
+
 		// 推送消息
 		notifyAllMsgs();
 	}
-	
+
 
 	/**
 	 * @see com.hdaheizi.base.fight.event.EventHandler#addEvent(com.hdaheizi.base.fight.event.FightEvent)
@@ -168,7 +168,7 @@ public class FightRoom extends Room implements EventHandler{
 		// 延迟处理的事件
 		eventAgent.addEvent(event);
 	}
-	
+
 
 	/**
 	 * @see com.hdaheizi.base.fight.event.EventHandler#handleEvent(com.hdaheizi.base.fight.event.FightEvent)
@@ -187,8 +187,8 @@ public class FightRoom extends Room implements EventHandler{
 			notifyMsg(builder.toString());
 		}
 	}
-	
-	
+
+
 	/**
 	 * 向房间推送消息
 	 * @param msg
@@ -198,8 +198,8 @@ public class FightRoom extends Room implements EventHandler{
 		msg += "|" + roomTime;
 		msgList.add(msg);
 	}
-	
-	
+
+
 	/**
 	 * 开始战斗
 	 * @Date 2016年7月11日 下午11:32:56
@@ -208,8 +208,8 @@ public class FightRoom extends Room implements EventHandler{
 		init();
 		FightSchedule.getInstance().schedule(this);
 	}
-	
-	
+
+
 	/**
 	 * 结束战斗
 	 * @param winSide
@@ -220,8 +220,8 @@ public class FightRoom extends Room implements EventHandler{
 		FightSchedule.getInstance().unschedule(this);
 		FightManager.getInstance().endFight(this);
 	}
-	
-	
+
+
 	/**
 	 * 检查战斗一方是否结束
 	 * @param heroList
@@ -237,8 +237,8 @@ public class FightRoom extends Room implements EventHandler{
 		}
 		return true;
 	}
-	
-	
+
+
 	/**
 	 * 每帧结束推送全部战斗消息
 	 * @Date 2016年5月22日 下午6:30:29
@@ -283,13 +283,13 @@ public class FightRoom extends Room implements EventHandler{
 				firstEnemy = target;
 			}
 		}
-		
+
 		return firstEnemy;
 	}
-	
-	
-	
-	
+
+
+
+
 	/**
 	 * 按类型查找目标
 	 * @param findMethod
@@ -310,7 +310,7 @@ public class FightRoom extends Room implements EventHandler{
 			}
 			return heros;
 		}
-		
+
 		case FightConstants.FIND_METHOD_2:
 		{
 			List<DefaultAIUnit> heroList = getTeammates(hero);
@@ -323,7 +323,7 @@ public class FightRoom extends Room implements EventHandler{
 			}
 			return heros;
 		}
-		
+
 		case FightConstants.FIND_METHOD_3:
 		{
 			DefaultAIUnit[] heros = new DefaultAIUnit[attList.size() + defList.size()];
@@ -375,7 +375,7 @@ public class FightRoom extends Room implements EventHandler{
 			}
 			return heros;
 		}
-		
+
 		case FightConstants.FIND_METHOD_5:
 		{
 			// 目标x
@@ -410,8 +410,8 @@ public class FightRoom extends Room implements EventHandler{
 			}
 			return heros;
 		}
-		
-		
+
+
 		default:
 
 		}
@@ -430,8 +430,8 @@ public class FightRoom extends Room implements EventHandler{
 	protected List<DefaultAIUnit> getTeammates(DefaultAIUnit hero){
 		return hero.side == FightConstants.FORCE_ATT ? attList : defList;
 	}
-	
-	
+
+
 	/**
 	 * 获取敌方英雄列表
 	 * @param hero
@@ -441,8 +441,8 @@ public class FightRoom extends Room implements EventHandler{
 	protected List<DefaultAIUnit> getEnemys(DefaultAIUnit hero){
 		return hero.side == FightConstants.FORCE_DEF ? attList : defList;
 	}
-	
-	
+
+
 	/**
 	 * 占用位置
 	 * @param x
@@ -452,8 +452,8 @@ public class FightRoom extends Room implements EventHandler{
 	public void holdPos(int x, int y){
 		posArray[x][y]++;
 	}
-	
-	
+
+
 	/**
 	 * 释放位置
 	 * @param x
@@ -463,8 +463,8 @@ public class FightRoom extends Room implements EventHandler{
 	public void releasePos(int x, int y){
 		posArray[x][y]--;
 	}
-	
-	
+
+
 	/**
 	 * 位置是否空闲
 	 * @param x
@@ -480,7 +480,7 @@ public class FightRoom extends Room implements EventHandler{
 		return false;
 	}
 
-	
+
 	/**
 	 * 寻找攻击位置
 	 * @param hero
@@ -497,7 +497,7 @@ public class FightRoom extends Room implements EventHandler{
 		int sign = hero.side == FightConstants.FORCE_ATT ? 1 : -1;
 		// 当前距离
 		int dx = (target.x - hero.x) * sign;
-		
+
 		if(dx < minLen){
 			// 距离太近
 			for(int len = minLen; len <= maxLen; len++){
@@ -541,8 +541,8 @@ public class FightRoom extends Room implements EventHandler{
 			return null;
 		}
 	}
-	
-	
+
+
 	/**
 	 * 添加战斗单元
 	 * @param hero

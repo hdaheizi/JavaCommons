@@ -62,7 +62,7 @@ public class DefaultLogger extends AbstractLogger {
 	@Override
 	public void info(String msg) {
 		System.out.println(name + "##info##" + msg);
-		
+
 	}
 
 	/**
@@ -71,7 +71,7 @@ public class DefaultLogger extends AbstractLogger {
 	@Override
 	public void info(String format, Object... arg) {
 		info(MessageFormatter.format(format, arg));
-		
+
 	}
 
 }

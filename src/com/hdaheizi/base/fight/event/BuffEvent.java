@@ -11,14 +11,14 @@ public class BuffEvent extends FightEvent {
 
 	/** buff名称 */
 	public String buffName;
-	
+
 	/** 产生buff的来源 */
 	public FightSkill skill;
-	
+
 	/** 相关参数 */
 	public Object[] params;
-	
-	
+
+
 	/**
 	 * 构造函数
 	 * @param buffName
@@ -30,5 +30,5 @@ public class BuffEvent extends FightEvent {
 		this.skill = skill;
 		this.params = params;
 	}
-	
+
 }

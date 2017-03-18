@@ -14,20 +14,20 @@ import com.hdaheizi.base.stl.Tuple;
  * @Date 2016年6月6日 下午11:16:26
  */
 public class SkillAttribute{
-	
+
 	/** 技能配置类 */
 	public Skill skill;
-	
+
 	/** 属性参数map */
 	public Map<String, Double> attributeMap = new HashMap<>();
-	
+
 	/** 技能效果列表 */
 	public List<Tuple<String, Integer>> effectList = new ArrayList<>();
-	
+
 	/** 效果参数map */
 	public Map<String, double[]> paramMap = new HashMap<>();
-	
-	
+
+
 	/**
 	 * 构造函数
 	 * @param skill
@@ -56,7 +56,7 @@ public class SkillAttribute{
 			paramMap.put(params[0], values);
 		}
 	}
-	
-	
-	
+
+
+
 }

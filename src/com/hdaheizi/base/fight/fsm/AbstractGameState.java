@@ -9,13 +9,13 @@ import com.hdaheizi.base.fight.unit.DefaultAIUnit;
  * @Date 2016年5月22日 下午5:16:03
  */
 public abstract class AbstractGameState implements GameState {
-	
+
 	/** 状态名称 */
 	protected String name;
-	
+
 	/** 拥有状态的AI */
 	protected DefaultAIUnit hero;
-	
+
 	/**
 	 * 构造函数
 	 * @param name
@@ -26,7 +26,7 @@ public abstract class AbstractGameState implements GameState {
 		this.hero = hero;
 	}
 
-	
+
 	/**
 	 * @see com.hdaheizi.base.fight.fsm.GameState#getName()
 	 */
@@ -34,31 +34,31 @@ public abstract class AbstractGameState implements GameState {
 	public String getName() {
 		return this.name;
 	}
-	
-	
+
+
 	/**
 	 * @see com.hdaheizi.base.fight.fsm.GameState#onEnter()
 	 */
 	@Override
 	public void onEnter(){
-		
+
 	}
 
-	
+
 	/**
 	 * @see com.hdaheizi.base.fight.fsm.GameState#onExit()
 	 */
 	@Override
 	public void onExit(){
-		
+
 	}
-	
-	
+
+
 	/**
 	 * @see com.hdaheizi.base.fight.fsm.GameState#handleEvent(com.hdaheizi.base.fight.event.FightEvent)
 	 */
 	@Override
 	public void handleEvent(FightEvent event){
-		
+
 	}
 }

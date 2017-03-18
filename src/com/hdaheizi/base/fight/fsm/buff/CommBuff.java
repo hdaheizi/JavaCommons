@@ -11,17 +11,17 @@ import com.hdaheizi.base.util.MessageFormatter;
  * @Date 2016年5月22日 下午5:14:08
  */
 public abstract class CommBuff extends AbstractGameState implements Buff {
-	
+
 	/** buff类型 1-增益 2-减益 3-控制*/
 	protected int type;
 
 	/** 优先级 */
 	protected float priority;
-	
+
 	/** 产生buff的来源 */
 	protected FightSkill skill;
 
-	
+
 	/**
 	 * 构造函数
 	 * @param buffName buff名称
@@ -36,8 +36,8 @@ public abstract class CommBuff extends AbstractGameState implements Buff {
 		this.type = type;
 		this.skill = skill;
 	}
-	
-	
+
+
 	/**
 	 * @see com.hdaheizi.base.fight.fsm.buff.Buff#getType()
 	 */
@@ -45,8 +45,8 @@ public abstract class CommBuff extends AbstractGameState implements Buff {
 	public int getType(){
 		return this.type;
 	}
-	
-	
+
+
 	/**
 	 * @see com.hdaheizi.base.fight.fsm.buff.Buff#getPriority()
 	 */
@@ -54,7 +54,7 @@ public abstract class CommBuff extends AbstractGameState implements Buff {
 	public float getPriority(){
 		return this.priority;
 	}
-	
+
 	/**
 	 * @see com.hdaheizi.base.fight.fsm.AbstractGameState#onEnter()
 	 */
@@ -64,7 +64,7 @@ public abstract class CommBuff extends AbstractGameState implements Buff {
 		hero.room.notifyMsg(MessageFormatter.format("{0}|{1}|enter", hero.id, name));
 	}
 
-	
+
 	/**
 	 * @see com.hdaheizi.base.fight.fsm.GameState#onExit()
 	 */
@@ -73,8 +73,8 @@ public abstract class CommBuff extends AbstractGameState implements Buff {
 		super.onExit();
 		hero.room.notifyMsg(MessageFormatter.format("{0}|{1}|exit", hero.id, name));
 	}
-	
-	
+
+
 	/**
 	 * @see com.hdaheizi.base.fight.fsm.buff.Buff#mixBuff(com.hdaheizi.base.fight.fsm.buff.Buff)
 	 */
@@ -87,8 +87,8 @@ public abstract class CommBuff extends AbstractGameState implements Buff {
 		}
 		return false;
 	}
-	
-	
+
+
 	/**
 	 * double 转为 int
 	 * @param value
@@ -98,8 +98,8 @@ public abstract class CommBuff extends AbstractGameState implements Buff {
 	protected static int doubleToInt(Object value){
 		return ((Double) value).intValue();
 	}
-	
-	
+
+
 	/**
 	 * @see com.hdaheizi.base.fight.fsm.buff.Buff#getSourceSkill()
 	 */
@@ -107,8 +107,8 @@ public abstract class CommBuff extends AbstractGameState implements Buff {
 	public FightSkill getSourceSkill() {
 		return skill;
 	}
-	
-	
+
+
 	/**
 	 * @see com.hdaheizi.base.fight.fsm.buff.Buff#getSourceHero()
 	 */
@@ -116,8 +116,8 @@ public abstract class CommBuff extends AbstractGameState implements Buff {
 	public DefaultAIUnit getSourceHero() {
 		return hero;
 	}
-	
-	
+
+
 	/**
 	 * @see com.hdaheizi.base.fight.fsm.buff.Buff#succAttack(com.hdaheizi.base.fight.unit.DefaultAIUnit, com.hdaheizi.base.fight.unit.DefaultAIUnit, int, java.lang.StringBuilder, java.lang.Object)
 	 */
@@ -126,8 +126,8 @@ public abstract class CommBuff extends AbstractGameState implements Buff {
 			int attType, StringBuilder inner, Object source) {
 		return true;
 	}
-	
-	
+
+
 	/**
 	 * @see com.hdaheizi.base.fight.fsm.buff.Buff#calcDam(int, com.hdaheizi.base.fight.unit.DefaultAIUnit, com.hdaheizi.base.fight.unit.DefaultAIUnit, int, java.lang.StringBuilder, java.lang.Object)
 	 */

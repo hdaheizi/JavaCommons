@@ -10,9 +10,9 @@ import com.hdaheizi.base.sdata.Potential;
  * @Date 2016年7月13日 下午10:21:53
  */
 public class Qiangligedang extends Pot {
-	
-	
-	
+
+
+
 	/**
 	 * 构造函数
 	 * @param hero
@@ -21,8 +21,8 @@ public class Qiangligedang extends Pot {
 	public Qiangligedang(DefaultAIUnit hero, Potential potential) {
 		super(hero, potential);
 	}
-	
-	
+
+
 	/**
 	 * @see com.hdaheizi.base.fight.pot.Pot#calcDam(int, com.hdaheizi.base.fight.unit.DefaultAIUnit, com.hdaheizi.base.fight.unit.DefaultAIUnit, int, java.lang.StringBuilder, java.lang.Object)
 	 */

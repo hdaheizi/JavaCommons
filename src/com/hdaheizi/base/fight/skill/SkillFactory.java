@@ -8,8 +8,8 @@ import com.hdaheizi.base.fight.unit.DefaultAIUnit;
  * @Date 2016年6月6日 下午11:25:02
  */
 public class SkillFactory {
-	
-	
+
+
 	/**
 	 * 创建技能
 	 * @param hero
@@ -27,5 +27,5 @@ public class SkillFactory {
 			return new CommSkill(hero, skill);
 		}
 	}
-	
+
 }

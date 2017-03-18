@@ -19,7 +19,7 @@ public class CommSkill implements FightSkill {
 
 	/** 对目标造成的伤害 */
 	protected int[] dams;
-	
+
 	/** 消息存储器 */
 	protected StringBuilder inners[];
 
@@ -62,7 +62,7 @@ public class CommSkill implements FightSkill {
 		}
 		return value;
 	}
-	
+
 
 	/**
 	 * 查找作用目标
@@ -91,7 +91,7 @@ public class CommSkill implements FightSkill {
 		// 上一次查找的目标
 		return targets;
 	}
-	
+
 
 	/**
 	 * @see com.hdaheizi.base.fight.skill.FightSkill#playSkill(int, double)
@@ -116,7 +116,7 @@ public class CommSkill implements FightSkill {
 		}
 	}
 
-	
+
 	/**
 	 * @see com.hdaheizi.base.fight.skill.FightSkill#flySkill(int, int)
 	 */
@@ -138,8 +138,8 @@ public class CommSkill implements FightSkill {
 			hero.room.notifyMsg(builder.toString());
 		}
 	}
-	
-	
+
+
 	/**
 	 * @see com.hdaheizi.base.fight.skill.FightSkill#handleEffect(java.lang.String, int)
 	 */
@@ -180,8 +180,8 @@ public class CommSkill implements FightSkill {
 			break;
 		}
 	}
-	
-	
+
+
 	/**
 	 * 处理特殊技能效果
 	 * @param key
@@ -189,9 +189,9 @@ public class CommSkill implements FightSkill {
 	 * @Date 2016年7月17日 下午5:27:34
 	 */
 	protected void handleSpecialEffect(String key, int param) {
-		
+
 	}
-	
+
 
 	/**
 	 * @see com.hdaheizi.base.fight.skill.FightSkill#canBeBreak(com.hdaheizi.base.fight.event.BreakEvent)
@@ -200,14 +200,14 @@ public class CommSkill implements FightSkill {
 	public boolean canBeBreak(BreakEvent event) {
 		return event.breakLv >= skillAttribute.skill.getBreakLv();
 	}
-	
+
 
 	/**
 	 * @see com.hdaheizi.base.fight.skill.FightSkill#onBreak()
 	 */
 	@Override
 	public void onBreak() {
-		
+
 	}
 
 
@@ -216,7 +216,7 @@ public class CommSkill implements FightSkill {
 	 */
 	@Override
 	public void onOver() {
-		
+
 	}
 
 
@@ -227,8 +227,8 @@ public class CommSkill implements FightSkill {
 	public DefaultAIUnit getSourceHero() {
 		return hero;
 	}
-	
-	
+
+
 	/**
 	 * @see com.hdaheizi.base.fight.skill.FightSkill#doSkillAttack(com.hdaheizi.base.fight.unit.DefaultAIUnit, double, java.lang.StringBuilder)
 	 */
@@ -240,10 +240,10 @@ public class CommSkill implements FightSkill {
 				target.def, target.mdef, 
 				getAttribute("damR", 1), getAttribute("mdamR", 1), 
 				(int) getAttribute("damE", 0), (int) getAttribute("mdamE", 0));
-		
+
 		dam = target.handleHitted((int) (dam * ratio), FightConstants.ATT_TYPE_SKILL, hero, inner, this);
-		
+
 		return dam;
 	}
-	
+
 }

@@ -16,23 +16,23 @@ import com.hdaheizi.base.util.MessageFormatter;
  * @Date 2016年6月10日 下午8:42:36
  */
 public class FightState extends AbstractGameState {
-	
+
 	/** 攻击目标 */
 	private DefaultAIUnit[] targets;
 
 	/** 空闲cd */
 	private int normCd;
-	
+
 	/** 起手cd */
 	private int prepCd;
-	
+
 	/** 效果迭代器 */
 	private Iterator<Tuple<String, Integer>> iterator;
-	
+
 	/** 攻击状态 0-准备 1-攻击 */
 	private int state;
-	
-	
+
+
 	/**
 	 * 构造函数
 	 * @param hero
@@ -66,13 +66,13 @@ public class FightState extends AbstractGameState {
 			prepCd -= dt;
 			return;
 		}
-		
+
 		StringBuilder builder = null; // 消息存储器
 		while(iterator.hasNext()){
 			Tuple<String, Integer> effect = iterator.next();
 			String key = effect.left;
 			int param = effect.right;
-			
+
 			switch(key){
 			case "norm":
 				// 空闲
@@ -95,7 +95,7 @@ public class FightState extends AbstractGameState {
 				// 播放特效
 				hero.room.notifyMsg(MessageFormatter.format("{0}|effect|{1}", hero.id, param));
 				break;
-				
+
 			case "hit":
 				// 近身攻击
 				state = 1;
@@ -129,14 +129,14 @@ public class FightState extends AbstractGameState {
 				handleEffect(key, param);
 				break;
 			}
-			
+
 		}
-		
+
 		// 攻击结束，切换到空闲状态
 		hero.gsm.changeState(new IdleState(hero, hero.attCd));
 	}
-	
-	
+
+
 	/**
 	 * @see com.hdaheizi.base.fight.fsm.AbstractGameState#handleEvent(com.hdaheizi.base.fight.event.FightEvent)
 	 */
@@ -149,8 +149,8 @@ public class FightState extends AbstractGameState {
 			hero.gsm.changeState(new IdleState(hero, hero.attCd));
 		}
 	}
-	
-	
+
+
 	/**
 	 * 处理普攻效果
 	 * @param key
@@ -158,10 +158,10 @@ public class FightState extends AbstractGameState {
 	 * @Date 2016年6月15日 下午9:50:22
 	 */
 	private void handleEffect(String key, int param){
-		
+
 	}
-	
-	
+
+
 	/**
 	 * 进行普通攻击
 	 * @param target
@@ -173,9 +173,9 @@ public class FightState extends AbstractGameState {
 	private int doNormAttack(DefaultAIUnit target, double ratio, StringBuilder inner){
 		int dam = hero.attMethod == FightConstants.ATT_METHOD_NORM 
 				? FightFormula.calcDam(hero.att, target.def) 
-				: FightFormula.calcDam(hero.matt, target.mdef);
-				
-		dam = target.handleHitted((int) (dam * ratio), FightConstants.ATT_TYPE_NORM, hero, inner, hero);
-		return dam;
+						: FightFormula.calcDam(hero.matt, target.mdef);
+
+				dam = target.handleHitted((int) (dam * ratio), FightConstants.ATT_TYPE_NORM, hero, inner, hero);
+				return dam;
 	}
 }

@@ -14,6 +14,6 @@ public class AddUnitEvent extends FightEvent {
 
 	/** 要添加的战斗单元列表 */
 	public List<DefaultAIUnit> heroList = new ArrayList<>();;
-	
-	
+
+
 }

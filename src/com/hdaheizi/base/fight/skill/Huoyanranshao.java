@@ -18,6 +18,6 @@ public class Huoyanranshao extends CommSkill {
 	public Huoyanranshao(DefaultAIUnit hero, SkillAttribute skillAttribute) {
 		super(hero, skillAttribute);
 	}
-	
-	
+
+
 }

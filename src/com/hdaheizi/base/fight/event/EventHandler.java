@@ -14,7 +14,7 @@ public interface EventHandler {
 	 * @Date 2016年4月5日 上午10:32:52
 	 */
 	void addEvent(FightEvent event);
-	
+
 
 	/**
 	 * 处理事件, 无视延迟，立即处理
@@ -22,5 +22,5 @@ public interface EventHandler {
 	 * @Date 2016年4月5日 上午10:32:50
 	 */
 	void handleEvent(FightEvent event);
-	
+
 }

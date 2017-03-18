@@ -11,14 +11,14 @@ import com.hdaheizi.base.stl.Tuple;
  * @Date 2016年6月10日 下午4:51:20
  */
 public class IdleState extends AbstractGameState {
-	
+
 	/** cd */
 	private int cd;
-	
+
 	/** 下一个状态 */
 	private GameState nextState;
 
-	
+
 	/**
 	 * 构造函数
 	 * @param hero
@@ -28,8 +28,8 @@ public class IdleState extends AbstractGameState {
 		super("idle", hero);
 		this.cd = cd;
 	}
-	
-	
+
+
 	/**
 	 * 构造函数
 	 * @param hero
@@ -40,7 +40,7 @@ public class IdleState extends AbstractGameState {
 		this(hero, cd);
 		this.nextState = nextState;
 	}
-	
+
 
 	/**
 	 * @see com.hdaheizi.base.fight.fsm.GameState#update(long)
@@ -72,7 +72,7 @@ public class IdleState extends AbstractGameState {
 				DefaultAIUnit[] targets = hero.room.findTargets(hero, hero.findMethod);
 				hero.gsm.changeState(new FightState(hero, targets));
 			}
-			
+
 		}
 	}
 

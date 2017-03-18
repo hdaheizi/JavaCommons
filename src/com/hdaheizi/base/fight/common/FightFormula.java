@@ -7,7 +7,7 @@ package com.hdaheizi.base.fight.common;
  */
 public class FightFormula {
 
-	
+
 	/**
 	 * 计算两点之间的距离
 	 * @param srcX
@@ -22,8 +22,8 @@ public class FightFormula {
 		int b = Math.abs(toY - srcY);
 		return (int) Math.sqrt(a * a + b * b);
 	}
-	
-	
+
+
 	/**
 	 * 计算长度
 	 * @param p1
@@ -34,8 +34,8 @@ public class FightFormula {
 	public static int calcLen(int p1, int p2){
 		return Math.abs(p1 - p2);
 	}
-	
-	
+
+
 	/**
 	 * 计算闪避率
 	 * @param dodge
@@ -46,8 +46,8 @@ public class FightFormula {
 	public static double calcDodgeRatio(int dodge, int hit){
 		return Math.sqrt(Math.max(dodge - hit, 0)) / 100;
 	}
-	
-	
+
+
 	/**
 	 * 计算暴击率
 	 * @param crip
@@ -57,8 +57,8 @@ public class FightFormula {
 	public static double calcCritRatio(int crip){
 		return Math.sqrt(crip) / 100;
 	}
-	
-	
+
+
 	/**
 	 * 计算基础伤害
 	 * @param att 攻击力
@@ -72,8 +72,8 @@ public class FightFormula {
 		}
 		return (int) (att * att /(att + 9 * def));
 	}
-	
-	
+
+
 	/**
 	 * 计算技能伤害
 	 * @param att 物理攻击
@@ -92,19 +92,19 @@ public class FightFormula {
 			int def, int mdef, 
 			double damR, double mdamR, 
 			int damE, int mdamE){
-		
+
 		// 基础物理伤害
 		int baseNDam = calcDam(att, def);
 		// 基础魔法伤害
 		int baseMDam = calcDam(matt, mdef);
-		
+
 		// 物理伤害加成
 		int skillNDam = (int) (baseNDam * damR + damE);
 		// 魔法伤害加成
 		int skillMDam = (int) (baseMDam * mdamR + mdamE);
-		
+
 		return skillNDam + skillMDam;
 	}
-	
-	
+
+
 }

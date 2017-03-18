@@ -8,14 +8,14 @@ import com.hdaheizi.base.fight.skill.FightSkill;
  * @Date 2016年7月17日 上午1:09:28
  */
 public class BreakEvent extends FightEvent {
-	
+
 	/** 打断级别 */
 	public int breakLv;
-	
+
 	/** 打断来源 */
 	public FightSkill skill;
-	
-	
+
+
 	/**
 	 * 构造函数
 	 * @param breakLv
@@ -25,5 +25,5 @@ public class BreakEvent extends FightEvent {
 		this.breakLv = breakLv;
 		this.skill = skill;
 	}
-	
+
 }

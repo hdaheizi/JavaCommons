@@ -15,17 +15,17 @@ public class DDamBuff extends CommBuff {
 
 	/** 全局cd */
 	private int globalCd;
-	
+
 	/** 下一次伤害cd */
 	private int intervalCd;
-	
+
 	/** 两次伤害间隔 */
 	private int interval;
-	
+
 	/** 每次伤害值 */
 	private int eachDam;
-	
-	
+
+
 	/**
 	 * 构造函数
 	 * @param buffName
@@ -43,8 +43,8 @@ public class DDamBuff extends CommBuff {
 		int times = (globalCd - intervalCd) / interval + 1; // 伤害次数
 		eachDam = doubleToInt(params[3]) / times; // 每次伤害值
 	}
-	
-	
+
+
 	/**
 	 * @see com.hdaheizi.base.fight.fsm.GameState#update(long)
 	 */
@@ -62,5 +62,5 @@ public class DDamBuff extends CommBuff {
 		if(globalCd <= 0){
 			hero.removeBuff(this);
 		}
- 	}
+	}
 }
