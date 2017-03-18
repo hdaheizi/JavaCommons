@@ -1186,7 +1186,7 @@ public class RBTreeRank<K> implements Rank<K> {
 	private int getBlackHeight(Node<K> p) {
 		int bh = 0;
 		while (p != null) {
-			if (p.color == BLACK){
+			if (p.color == BLACK) {
 				bh++;
 			}
 			p = p.right;
