@@ -15,66 +15,66 @@ public abstract class AbstractListRank<K> implements Rank<K> {
 
 	/** list */
 	protected List<K> list;
-	
+
 	/** comparator */
 	protected Comparator<? super K> comparator;
-	
+
 	/**
 	 * @param comparator
 	 */
 	public AbstractListRank(Comparator<? super K> comparator) {
 		this.comparator = comparator;
 	}
-	
-    @SuppressWarnings("unchecked")
+
+	@SuppressWarnings("unchecked")
 	final int compare(K k1, K k2) {
-        return comparator == null ? ((Comparable<? super K>)k1).compareTo(k2)
-                : comparator.compare(k1, k2);
-    }
-    
-    /**
-     * @see com.hdaheizi.base.stl.Rank#getKth(int)
-     */
-    @Override
-    public K getKth(int kth) {
-    	return list.get(kth - 1);
-    }
-    
-    /**
-     * @see com.hdaheizi.base.stl.IRank#size()
-     */
-    @Override
-    public int size() {
-    	return list.size();
-    }
-    
-    /**
-     * @see com.hdaheizi.base.stl.IRank#clear()
-     */
-    @Override
-    public void clear() {
-    	list.clear();
-    }
-    
-    
-    /**
-     * 内部排行榜迭代器
-     * @author daheiz
-     * @Date 2017年3月14日 下午6:58:40
-     */
-    protected class RankItr implements RankIterator<K> {
-    	
-    	/** listItr */
-    	protected ListIterator<K> listItr;
-    	
-    	/**
-    	 * 构造函数
-    	 * @param listItr
-    	 */
-    	public RankItr(ListIterator<K> listItr) {
+		return comparator == null ? ((Comparable<? super K>)k1).compareTo(k2)
+				: comparator.compare(k1, k2);
+	}
+
+	/**
+	 * @see com.hdaheizi.base.stl.Rank#getKth(int)
+	 */
+	@Override
+	public K getKth(int kth) {
+		return list.get(kth - 1);
+	}
+
+	/**
+	 * @see com.hdaheizi.base.stl.IRank#size()
+	 */
+	@Override
+	public int size() {
+		return list.size();
+	}
+
+	/**
+	 * @see com.hdaheizi.base.stl.IRank#clear()
+	 */
+	@Override
+	public void clear() {
+		list.clear();
+	}
+
+
+	/**
+	 * 内部排行榜迭代器
+	 * @author daheiz
+	 * @Date 2017年3月14日 下午6:58:40
+	 */
+	protected class RankItr implements RankIterator<K> {
+
+		/** listItr */
+		protected ListIterator<K> listItr;
+
+		/**
+		 * 构造函数
+		 * @param listItr
+		 */
+		public RankItr(ListIterator<K> listItr) {
 			this.listItr = listItr;
 		}
-    	
+
 		/**
 		 * @see java.util.Iterator#hasNext()
 		 */
@@ -122,16 +122,16 @@ public abstract class AbstractListRank<K> implements Rank<K> {
 		public int previousRank() {
 			return listItr.previousIndex() + 1;
 		}
-    }
-    
-    
-    /**
-     * @see java.lang.Iterable#iterator()
-     */
-    @Override
-    public Iterator<K> iterator() {
-    	return list.iterator();
-    }
+	}
+
+
+	/**
+	 * @see java.lang.Iterable#iterator()
+	 */
+	@Override
+	public Iterator<K> iterator() {
+		return list.iterator();
+	}
 
 	/**
 	 * @see com.hdaheizi.base.stl.Rank#rankIterator()
@@ -148,5 +148,5 @@ public abstract class AbstractListRank<K> implements Rank<K> {
 	public RankIterator<K> rankIterator(int rank) {
 		return new RankItr(list.listIterator(rank));
 	}
-	
+
 }

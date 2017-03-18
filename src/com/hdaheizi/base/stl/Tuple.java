@@ -10,21 +10,21 @@ import java.io.Serializable;
  * @Date 2016年3月15日 下午10:28:52
  */
 public class Tuple<L, R> implements Serializable {
-	
+
 	/** serialVersionUID */
 	private static final long serialVersionUID = 1L;
-	
+
 	/** left */
 	public L left;
-	
+
 	/** right */
 	public R right;
-	
+
 	/**
 	 * 构造函数
 	 */
 	public Tuple(){
-		
+
 	}
 
 	/**
@@ -36,8 +36,8 @@ public class Tuple<L, R> implements Serializable {
 		this.left = left;
 		this.right = right;
 	}
-	
-	
+
+
 	/**
 	 * @see java.lang.Object#hashCode()
 	 */
@@ -47,8 +47,8 @@ public class Tuple<L, R> implements Serializable {
 		int rigthCode = right == null ? 0 : right.hashCode();
 		return leftCode ^ rigthCode;
 	}
-	
-	
+
+
 	/**
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
@@ -60,18 +60,18 @@ public class Tuple<L, R> implements Serializable {
 		}
 		return false;
 	}
-	
-    /**
-     * 比较两个对象是否相等
-     * @param o1
-     * @param o2
-     * @return
-     * @Date 2017年3月12日 下午9:58:11
-     */
-    private static final boolean objEquals(Object o1, Object o2) {
-        return o1 == null ? o2 == null : o1.equals(o2);
-    }
-    
+
+	/**
+	 * 比较两个对象是否相等
+	 * @param o1
+	 * @param o2
+	 * @return
+	 * @Date 2017年3月12日 下午9:58:11
+	 */
+	private static final boolean objEquals(Object o1, Object o2) {
+		return o1 == null ? o2 == null : o1.equals(o2);
+	}
+
 	/**
 	 * @see java.lang.Object#toString()
 	 */
@@ -79,5 +79,5 @@ public class Tuple<L, R> implements Serializable {
 	public String toString(){
 		return "[left=" + left + ", right=" + right + "]";
 	}
-	
+
 }

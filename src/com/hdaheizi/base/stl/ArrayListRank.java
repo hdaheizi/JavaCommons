@@ -13,14 +13,14 @@ import java.util.List;
  * @Date 2017年3月11日 下午9:46:51
  */
 public class ArrayListRank<K> extends AbstractListRank<K> {
-	
+
 	/**
 	 * 构造函数
 	 */
 	public ArrayListRank() {
 		this(null);
 	}
-	
+
 	/**
 	 * @param comparator
 	 */
@@ -29,77 +29,77 @@ public class ArrayListRank<K> extends AbstractListRank<K> {
 		this.list = new ArrayList<>();
 	}
 
-	
-    /**
-     * @see com.hdaheizi.base.stl.IRank#add(java.lang.Object)
-     */
-    @Override
-    public boolean add(K key) {
-    	int index = search(key);
-    	if (index >= 0) {
-    		return false;
-    	} else {
-    		list.add(-index - 1, key);
-    		return true;
-    	}
-    }
-    
-    /**
-     * 查找关键字所在位置
-     * @param key
-     * @return 如果找到，则返回关键字所在位置的索引，
-     * 		     如果未找到，则返回((-插入点索引) - 1)
-     * @Date 2017年3月12日 下午9:19:36
-     */
-    private int search(K key) {
-    	if (comparator == null) {
-    		@SuppressWarnings("unchecked")
-			List<Comparable<? super K>> _list = (List<Comparable<? super K>>) list;
-    		return Collections.binarySearch(_list, key);
-    	} else {
-    		return Collections.binarySearch(list, key, comparator);
-    	}
-    }
-    
-    /**
-     * @see com.hdaheizi.base.stl.IRank#remove(java.lang.Object)
-     */
-    @Override
-    public boolean remove(K key) {
-    	int index = search(key);
-    	if (index >= 0) {
-    		list.remove(index);
-    		return true;
-    	} else {
-    		return false;
-    	}
+
+	/**
+	 * @see com.hdaheizi.base.stl.IRank#add(java.lang.Object)
+	 */
+	@Override
+	public boolean add(K key) {
+		int index = search(key);
+		if (index >= 0) {
+			return false;
+		} else {
+			list.add(-index - 1, key);
+			return true;
+		}
 	}
-    
-    /**
-     * @see com.hdaheizi.base.stl.IRank#contains(java.lang.Object)
-     */
-    @Override
-    public boolean contains(K key) {
-    	return search(key) >= 0;
-    }
-    
-    /**
-     * @see com.hdaheizi.base.stl.IRank#getRank(java.lang.Object)
-     */
-    @Override
-    public int getRank(K key) {
-    	int index = search(key);
-    	return index >= 0 ? index + 1 : index;
-    }
-    
-    
-    /**
-     * 单元测试
-     * @param args
-     * @Date 2017年3月11日 下午9:47:38
-     */
-    public static void main(String[] args) {
-    	ArrayListRank<Integer> r = new ArrayListRank<>();
+
+	/**
+	 * 查找关键字所在位置
+	 * @param key
+	 * @return 如果找到，则返回关键字所在位置的索引，
+	 * 		     如果未找到，则返回((-插入点索引) - 1)
+	 * @Date 2017年3月12日 下午9:19:36
+	 */
+	private int search(K key) {
+		if (comparator == null) {
+			@SuppressWarnings("unchecked")
+			List<Comparable<? super K>> _list = (List<Comparable<? super K>>) list;
+			return Collections.binarySearch(_list, key);
+		} else {
+			return Collections.binarySearch(list, key, comparator);
+		}
+	}
+
+	/**
+	 * @see com.hdaheizi.base.stl.IRank#remove(java.lang.Object)
+	 */
+	@Override
+	public boolean remove(K key) {
+		int index = search(key);
+		if (index >= 0) {
+			list.remove(index);
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	/**
+	 * @see com.hdaheizi.base.stl.IRank#contains(java.lang.Object)
+	 */
+	@Override
+	public boolean contains(K key) {
+		return search(key) >= 0;
+	}
+
+	/**
+	 * @see com.hdaheizi.base.stl.IRank#getRank(java.lang.Object)
+	 */
+	@Override
+	public int getRank(K key) {
+		int index = search(key);
+		return index >= 0 ? index + 1 : index;
+	}
+
+
+	/**
+	 * 单元测试
+	 * @param args
+	 * @Date 2017年3月11日 下午9:47:38
+	 */
+	public static void main(String[] args) {
+		ArrayListRank<Integer> r = new ArrayListRank<>();
 		int num = 10000;
 		Integer[] a = new Integer[num];
 		for (int i = 0; i < num; ++i) {
@@ -107,7 +107,7 @@ public class ArrayListRank<K> extends AbstractListRank<K> {
 		}
 		List<Integer> li = Arrays.asList(a);
 		List<Integer> li2 = li.subList(1, 31);
-		
+
 		// *****测试正确性
 		System.out.println("****test correctness, num :" + li2.size());
 		// 添加
@@ -121,9 +121,9 @@ public class ArrayListRank<K> extends AbstractListRank<K> {
 		r.remove(24);
 		r.add(8);
 		r.add(9);
-		
+
 		System.out.println(Arrays.toString(r.toArray()));
-		
+
 		System.out.println("23 is at the rank: " + r.getRank(23));
 		System.out.println("25 is at the rank: " + r.getRank(25));
 		System.out.println("0 is at the rank: " + r.getRank(0));
@@ -134,8 +134,8 @@ public class ArrayListRank<K> extends AbstractListRank<K> {
 			r.remove(i);
 		}
 		System.out.println(Arrays.toString(r.toArray()));
-		
-		
+
+
 		// *****测试效率
 		r.clear();
 		System.out.println("****test speed, num :" + li.size() + " ,time unit: (ns)");
@@ -180,6 +180,6 @@ public class ArrayListRank<K> extends AbstractListRank<K> {
 		}
 		ns2 = System.nanoTime();
 		System.out.println("delete:" + (ns2 - ns1) / num);
-		
+
 	}
 }

@@ -14,14 +14,14 @@ import java.util.ListIterator;
  * @Date 2017年3月11日 下午9:46:51
  */
 public class LinkedListRank<K> extends AbstractListRank<K> {
-	
+
 	/**
 	 * 构造函数
 	 */
 	public LinkedListRank() {
 		this(null);
 	}
-	
+
 	/**
 	 * 构造函数
 	 * @param comparator
@@ -30,82 +30,82 @@ public class LinkedListRank<K> extends AbstractListRank<K> {
 		super(comparator);
 		this.list = new LinkedList<>();
 	}
-    
-    /**
-     * @see com.hdaheizi.base.stl.IRank#add(java.lang.Object)
-     */
-    @Override
-    public boolean add(K key) {
-    	ListIterator<K> it = list.listIterator();
-    	int cmp;
-    	while (it.hasNext()) {
-    		K k = it.next();
-    		cmp = compare(k, key);
-    		if (cmp == 0){
-    			return false;
-    		} else if (cmp > 0) {
-    			it.set(key);
-    			it.add(k);
-    			return true;
-    		}
-    	}
-    	it.add(key);
-    	return true;
-    }
-    
-    /**
-     * @see com.hdaheizi.base.stl.IRank#remove(java.lang.Object)
-     */
-    @Override
-    public boolean remove(K key) {
-    	return list.remove(key);
+
+	/**
+	 * @see com.hdaheizi.base.stl.IRank#add(java.lang.Object)
+	 */
+	@Override
+	public boolean add(K key) {
+		ListIterator<K> it = list.listIterator();
+		int cmp;
+		while (it.hasNext()) {
+			K k = it.next();
+			cmp = compare(k, key);
+			if (cmp == 0){
+				return false;
+			} else if (cmp > 0) {
+				it.set(key);
+				it.add(k);
+				return true;
+			}
+		}
+		it.add(key);
+		return true;
 	}
-    
-    /**
-     * @see com.hdaheizi.base.stl.IRank#contains(java.lang.Object)
-     */
-    @Override
-    public boolean contains(K key) {
-    	return list.contains(key);
-    }
-    
-    /**
-     * @see com.hdaheizi.base.stl.IRank#getKth(int)
-     */
-    @Override
-    public K getKth(int kth) {
-    	if (kth > 0 && kth <= list.size()) {
-    		return list.get(kth - 1);
-    	}
-    	return null;
-    }
-    
-    /**
-     * @see com.hdaheizi.base.stl.IRank#getRank(java.lang.Object)
-     */
-    @Override
-    public int getRank(K key) {
-    	int cmp;
-    	ListIterator<K> it = list.listIterator();
-    	while (it.hasNext()) {
-    		cmp = compare(key, it.next());
-    		if (cmp == 0) {
-    			return it.nextIndex();
-    		} else if (cmp < 0) {
-    			return -it.nextIndex();
-    		}
-    	}
-    	return -it.nextIndex() - 1;
-    }
-    
-    
-    /**
-     * 单元测试
-     * @param args
-     * @Date 2017年3月11日 下午9:47:38
-     */
-    public static void main(String[] args) {
-    	LinkedListRank<Integer> r = new LinkedListRank<>();
+
+	/**
+	 * @see com.hdaheizi.base.stl.IRank#remove(java.lang.Object)
+	 */
+	@Override
+	public boolean remove(K key) {
+		return list.remove(key);
+	}
+
+	/**
+	 * @see com.hdaheizi.base.stl.IRank#contains(java.lang.Object)
+	 */
+	@Override
+	public boolean contains(K key) {
+		return list.contains(key);
+	}
+
+	/**
+	 * @see com.hdaheizi.base.stl.IRank#getKth(int)
+	 */
+	@Override
+	public K getKth(int kth) {
+		if (kth > 0 && kth <= list.size()) {
+			return list.get(kth - 1);
+		}
+		return null;
+	}
+
+	/**
+	 * @see com.hdaheizi.base.stl.IRank#getRank(java.lang.Object)
+	 */
+	@Override
+	public int getRank(K key) {
+		int cmp;
+		ListIterator<K> it = list.listIterator();
+		while (it.hasNext()) {
+			cmp = compare(key, it.next());
+			if (cmp == 0) {
+				return it.nextIndex();
+			} else if (cmp < 0) {
+				return -it.nextIndex();
+			}
+		}
+		return -it.nextIndex() - 1;
+	}
+
+
+	/**
+	 * 单元测试
+	 * @param args
+	 * @Date 2017年3月11日 下午9:47:38
+	 */
+	public static void main(String[] args) {
+		LinkedListRank<Integer> r = new LinkedListRank<>();
 		int num = 10000;
 		Integer[] a = new Integer[num];
 		for (int i = 0; i < num; ++i) {
@@ -113,7 +113,7 @@ public class LinkedListRank<K> extends AbstractListRank<K> {
 		}
 		List<Integer> li = Arrays.asList(a);
 		List<Integer> li2 = li.subList(1, 31);
-		
+
 		// *****测试正确性
 		System.out.println("****test correctness, num :" + li2.size());
 		// 添加
@@ -127,9 +127,9 @@ public class LinkedListRank<K> extends AbstractListRank<K> {
 		r.remove(24);
 		r.add(8);
 		r.add(9);
-		
+
 		System.out.println(Arrays.toString(r.toArray()));
-		
+
 		System.out.println("23 is at the rank: " + r.getRank(23));
 		System.out.println("25 is at the rank: " + r.getRank(25));
 		System.out.println("0 is at the rank: " + r.getRank(0));
@@ -140,8 +140,8 @@ public class LinkedListRank<K> extends AbstractListRank<K> {
 			r.remove(i);
 		}
 		System.out.println(Arrays.toString(r.toArray()));
-		
-		
+
+
 		// *****测试效率
 		r.clear();
 		System.out.println("****test speed, num :" + li.size() + " ,time unit: (ns)");

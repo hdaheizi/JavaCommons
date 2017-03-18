@@ -20,26 +20,26 @@ public class Chart<K, V> {
 
 	/** 内部值排行榜 */
 	private Rank<UniqueValue> rank;
-	
+
 	/** 存储<key, 唯一值> */
 	private Map<K, UniqueValue> map;
-	
+
 	/** 比较器 */
 	private Comparator<? super V> comparator;
-	
+
 	/** 顺序id生成器 */
 	private transient long orderGenerator;
-	
+
 	/** 顺序id生成器的初值 */
 	private static final long ORDER_GENERATOR_INIT_VALUE = (long)1 << 63;
-	
+
 	/**
 	 * 构造函数
 	 */
 	public Chart() {
 		this(null);
 	}
-	
+
 	/**
 	 * @param comparator
 	 */
@@ -49,7 +49,7 @@ public class Chart<K, V> {
 		this.map = new HashMap<>();
 		initOrderGenerator();
 	}
-	
+
 	/**
 	 * 初始化顺序id生成器
 	 * @Date 2017年3月14日 下午11:20:17
@@ -57,7 +57,7 @@ public class Chart<K, V> {
 	private void initOrderGenerator() {
 		orderGenerator = ORDER_GENERATOR_INIT_VALUE;
 	}
-	
+
 	/**
 	 * 比较两个值的大小
 	 * @param v1
@@ -67,11 +67,11 @@ public class Chart<K, V> {
 	 */
 	@SuppressWarnings("unchecked")
 	private final int compare(V v1, V v2) {
-        return comparator == null ? ((Comparable<? super V>)v1).compareTo(v2)
-                : comparator.compare(v1, v2);
-    }
-	
-	
+		return comparator == null ? ((Comparable<? super V>)v1).compareTo(v2)
+				: comparator.compare(v1, v2);
+	}
+
+
 	/**
 	 * 唯一值类，为每个对象赋予一个唯一id，保证所有实例不相等，
 	 * 且对于真值相等的对象，具有生成时间上的排序稳定性
@@ -85,7 +85,7 @@ public class Chart<K, V> {
 		V value;
 		/** 唯一id */
 		final long order;
-		
+
 		/**
 		 * 构造函数
 		 * @param key
@@ -94,7 +94,7 @@ public class Chart<K, V> {
 		UniqueValue(K key, V value) {
 			this(key, value, orderGenerator++);
 		}
-		
+
 		/**
 		 * 构造函数
 		 * @param key
@@ -106,7 +106,7 @@ public class Chart<K, V> {
 			this.value = value;
 			this.order = order;
 		}
-		
+
 		/**
 		 * @see java.lang.Comparable#compareTo(java.lang.Object)
 		 */
@@ -123,7 +123,7 @@ public class Chart<K, V> {
 		}
 	}
 
-	
+
 	/**
 	 * 更新
 	 * @param key
@@ -145,7 +145,7 @@ public class Chart<K, V> {
 		map.put(key, uniValue);
 		rank.add(uniValue);
 	}
-	
+
 	/**
 	 * 查找
 	 * @param key
@@ -160,7 +160,7 @@ public class Chart<K, V> {
 		int r = rank.getRank(uniValue);
 		return new Tuple<>(r, uniValue.value);
 	}
-	
+
 	/**
 	 * 移除
 	 * @param key
@@ -175,7 +175,7 @@ public class Chart<K, V> {
 		}
 		return null;
 	}
-	
+
 	/**
 	 * 返回一段连续的<key，value>列表，[start, end]
 	 * @param start 起始名次(包含)
@@ -195,7 +195,7 @@ public class Chart<K, V> {
 		}
 		return list;
 	}
-	
+
 	/**
 	 * 返回指定范围内的<key，value>列表，[low, high]
 	 * @param low 低值(>=low)
@@ -214,7 +214,7 @@ public class Chart<K, V> {
 		}
 		return getSequenceList(start, end);
 	}
-	
+
 	/**
 	 * 是否存在于排行榜内
 	 * @param key
@@ -224,7 +224,7 @@ public class Chart<K, V> {
 	public synchronized boolean contains(K key) {
 		return map.containsKey(key);
 	}
-	
+
 	/**
 	 * 存储数据的数量
 	 * @return
@@ -233,7 +233,7 @@ public class Chart<K, V> {
 	public synchronized int size() {
 		return map.size();
 	}
-	
+
 	/**
 	 * 清空排行榜
 	 * @Date 2017年3月14日 下午11:21:46
@@ -243,7 +243,7 @@ public class Chart<K, V> {
 		rank.clear();
 		initOrderGenerator();
 	}
-	
+
 	/**
 	 * 单元测试
 	 * @param args
@@ -259,10 +259,10 @@ public class Chart<K, V> {
 		for (int id = 4; id < 30; id++) {
 			r.put(id, id * 10);
 		}
-		
+
 		System.out.println(Arrays.toString(r.getSequenceList(9, 12).toArray()));
 		System.out.println(Arrays.toString(r.getRangeList(30, 60).toArray()));
-		
+
 		// *****测试效率
 		int num = 10000;
 		Integer[] a = new Integer[num];
@@ -281,7 +281,7 @@ public class Chart<K, V> {
 		}
 		ns2 = System.nanoTime();
 		System.out.println("put: " + (ns2 - ns1) / num);
-		
+
 		// 查找
 		Collections.shuffle(li);
 		ns1 = System.nanoTime();

@@ -648,7 +648,7 @@ public class RBTreeRank<K> implements Rank<K> {
 	 * 返回给定关键字的名次
 	 * @param key
 	 * @return 如果包含该关键字，则返回一个正数，即当前名次
-	 * 		     如果不包含该关键字，则返回一个负数，其绝对值为插入该关键字后的名次
+	 *         如果不包含该关键字，则返回一个负数，其绝对值为插入该关键字后的名次
 	 * @Date 2017年3月11日 上午12:37:05
 	 */
 	public int getRank(K key) {
@@ -848,7 +848,7 @@ public class RBTreeRank<K> implements Rank<K> {
 	/**
 	 * 返回一个指定起始名次的RankIterator
 	 * @param rank [0,size]，调用previous()时返回的第一个关键字的名次为 rank
-	 * 						 调用next()时返回的第一个关键字的名次为 rank+1
+	 *                       调用next()时返回的第一个关键字的名次为 rank+1
 	 * @return
 	 * @Date 2017年3月11日 下午5:13:25
 	 */
