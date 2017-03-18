@@ -19,7 +19,7 @@ import java.util.Map;
 public class Chart<K, V> {
 
 	/** 内部值排行榜 */
-	private Rank<UniqueValue> rank;
+	private IRank<UniqueValue> rank;
 
 	/** 存储<key, 唯一值> */
 	private Map<K, UniqueValue> map;
@@ -264,7 +264,7 @@ public class Chart<K, V> {
 		System.out.println(Arrays.toString(r.getRangeList(30, 60).toArray()));
 
 		// *****测试效率
-		int num = 10000;
+		int num = 100000;
 		Integer[] a = new Integer[num];
 		for (int i = 0; i < num; ++i) {
 			a[i] = i;
@@ -293,8 +293,8 @@ public class Chart<K, V> {
 		// 顺次
 		Collections.shuffle(li);
 		ns1 = System.nanoTime();
-		for (int i = 1; i < r.size(); i++) {
-			r.getSequenceList(i - 1, i);
+		for (int i = 1; i <= num; i++) {
+			r.getSequenceList(i, i);
 		}
 		ns2 = System.nanoTime();
 		System.out.println("kth:" + (ns2 - ns1) / num);
