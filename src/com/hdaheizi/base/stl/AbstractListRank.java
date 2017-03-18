@@ -11,7 +11,7 @@ import java.util.ListIterator;
  * @author daheiz
  * @Date 2017年3月14日 下午7:01:01
  */
-public abstract class AbstractListRank<K> implements Rank<K> {
+public abstract class AbstractListRank<K> implements IRank<K> {
 
 	/** list */
 	protected List<K> list;

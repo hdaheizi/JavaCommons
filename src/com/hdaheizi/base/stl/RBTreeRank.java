@@ -14,7 +14,7 @@ import java.util.NoSuchElementException;
  * @author daheiz
  * @Date 2017年3月3日 下午5:35:04
  */
-public class RBTreeRank<K> implements Rank<K> {
+public class RBTreeRank<K> implements IRank<K> {
 
 	/** 颜色常量 */
 	private static final boolean RED   = false;

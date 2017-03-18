@@ -9,7 +9,7 @@ import java.util.Iterator;
  * @author daheiz
  * @Date 2017年3月11日 下午9:33:19
  */
-public interface Rank<K> extends Iterable<K> {
+public interface IRank<K> extends Iterable<K> {
 
 	/**
 	 * 添加关键字
