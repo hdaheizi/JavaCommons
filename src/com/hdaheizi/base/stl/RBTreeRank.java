@@ -703,7 +703,7 @@ public class RBTreeRank<K> implements Rank<K> {
 	 */
 	public void clear() {
 		modCount++;
-    	root = null;
+		root = null;
     }
 	
 	/**
