@@ -888,7 +888,7 @@ public class RBTreeRank<K> implements IRank<K> {
 	 * @Date 2017年3月11日 上午1:03:00
 	 */
 	private static <K> int sizeOf(Node<K> p) {
-		return (p == null) ? 0 : p.size;
+		return p == null ? 0 : p.size;
 	}
 
 	/**
