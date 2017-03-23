@@ -608,18 +608,18 @@ public class RBTreeRank<K> implements IRank<K> {
 
 	/**
 	 * 返回对应名次的关键字
-	 * @param rank
+	 * @param kth
 	 * @return
-	 * @throws IndexOutOfBoundsException 当名次rank越界时抛出异常
+	 * @throws IndexOutOfBoundsException 当名次kth越界时抛出异常
 	 * @Date 2017年3月11日 下午3:02:32
 	 * @see com.hdaheizi.base.stl.IRank#getKth(int)
 	 */
 	@Override
-	public K getKth(int rank) {
-		if (!(rank > 0 && rank <= size())) {
-			throw new IndexOutOfBoundsException(outOfBoundsMsg(rank));
+	public K getKth(int kth) {
+		if (!(kth > 0 && kth <= size())) {
+			throw new IndexOutOfBoundsException(outOfBoundsMsg(kth));
 		}
-		return keyOf(getKthNode(rank));
+		return keyOf(getKthNode(kth));
 	}
 
 	/**

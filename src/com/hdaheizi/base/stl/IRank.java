@@ -48,6 +48,7 @@ public interface IRank<K> extends Iterable<K> {
 	 * 返回对应名次的关键字
 	 * @param kth
 	 * @return
+	 * @throws IndexOutOfBoundsException 当名次rank越界时抛出异常
 	 * @Date 2017年3月11日 下午9:35:11
 	 */
 	K getKth(int kth);

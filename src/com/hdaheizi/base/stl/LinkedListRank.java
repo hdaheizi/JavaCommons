@@ -70,17 +70,6 @@ public class LinkedListRank<K> extends AbstractListRank<K> {
 	}
 
 	/**
-	 * @see com.hdaheizi.base.stl.IRank#getKth(int)
-	 */
-	@Override
-	public K getKth(int kth) {
-		if (kth > 0 && kth <= list.size()) {
-			return list.get(kth - 1);
-		}
-		return null;
-	}
-
-	/**
 	 * @see com.hdaheizi.base.stl.IRank#getRank(java.lang.Object)
 	 */
 	@Override

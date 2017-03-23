@@ -33,10 +33,13 @@ public abstract class AbstractListRank<K> implements IRank<K> {
 	}
 
 	/**
-	 * @see com.hdaheizi.base.stl.Rank#getKth(int)
+	 * @see com.hdaheizi.base.stl.IRank#getKth(int)
 	 */
 	@Override
 	public K getKth(int kth) {
+		if (!(kth > 0 && kth <= size())) {
+			throw new IndexOutOfBoundsException(outOfBoundsMsg(kth));
+		}
 		return list.get(kth - 1);
 	}
 
@@ -124,6 +127,16 @@ public abstract class AbstractListRank<K> implements IRank<K> {
 		}
 	}
 
+
+	/**
+	 * 生成越界信息
+	 * @param rank
+	 * @return
+	 * @Date 2017年3月13日 下午11:01:01
+	 */
+	private String outOfBoundsMsg(int rank) {
+		return "Rank: " + rank + ", Size: " + size();
+	}
 
 	/**
 	 * @see java.lang.Iterable#iterator()
