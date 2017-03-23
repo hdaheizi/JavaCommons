@@ -8,6 +8,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
@@ -20,6 +21,8 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import com.hdaheizi.base.stl.ArrayListRank;
+import com.hdaheizi.base.stl.IRank;
+import com.hdaheizi.base.stl.RBTreeRank;
 import com.hdaheizi.base.test.unit.IAny;
 
 public class CollectionTest {
@@ -86,6 +89,20 @@ public class CollectionTest {
 //		queue.forEach(x -> System.out.println(x));
 //		Map<Integer, Integer> map = new HashMap<>();
 //		Map<Integer, Integer> map2 = new TreeMap<>();
+		int[] a = new int[]{1, 2, 3, 4, 5, 6};
+		System.arraycopy(a, 1, a, 0, 5);
+		System.out.println(Arrays.toString(a));
+		
+		
+		IRank<Integer> rank = new RBTreeRank<>();
+		rank.add(3);
+		rank.add(2);
+		rank.add(4);
+		Iterator<Integer> it = rank.iterator();
+		while (it.hasNext()) {
+			it.next();
+			it.remove();
+		}
 		
 		System.exit(0);
 	}

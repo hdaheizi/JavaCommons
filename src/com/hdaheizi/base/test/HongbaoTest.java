@@ -21,7 +21,7 @@ public class HongbaoTest {
 	public static void main(String[] args) {
 		HongbaoTest test = new HongbaoTest();
 		HongbaoManager manager = test.new HongbaoManager();
-		manager.init(5, 100, false);
+		manager.init(5, 100, true);
 		manager.run(10000);
 		manager.report();
 	}
