@@ -2,6 +2,7 @@ package com.hdaheizi.base.stl;
 
 import java.lang.reflect.Array;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 /**
  * 排行榜接口
@@ -72,6 +73,9 @@ public interface IRank<K> extends Iterable<K> {
 	 * @Date 2017年3月11日 下午9:44:47
 	 */
 	default K getFirst() {
+		if (size() == 0) {
+			throw new NoSuchElementException();
+		}
 		return getKth(1);
 	}
 
@@ -81,7 +85,11 @@ public interface IRank<K> extends Iterable<K> {
 	 * @Date 2017年3月11日 下午9:44:44
 	 */
 	default K getLast() {
-		return getKth(size());
+		int size = size();
+		if (size == 0) {
+			throw new NoSuchElementException();
+		}
+		return getKth(size);
 	}
 
 	/**

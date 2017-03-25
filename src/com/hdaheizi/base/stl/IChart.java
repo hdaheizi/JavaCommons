@@ -67,7 +67,7 @@ public interface IChart<K, V> {
 	Tuple<Integer, V> search(K key);
 
 	/**
-	 * 返回第kth名的数据
+	 * 返回第kth名的数据,名次越界时返回null
 	 * @param rank
 	 * @return <key，value>
 	 * @Date 2017年3月23日 下午3:26:46
@@ -75,16 +75,28 @@ public interface IChart<K, V> {
 	Tuple<K, V> getKth(int rank);
 
 	/**
-	 * 返回一段连续的<key，value>列表，[start, end]
-	 * @param start 起始名次(包含)
+	 * 返回一段连续的<key，value>数据列表，(start, end]
+	 * @param start 起始名次(不包含)
 	 * @param end 终止名次(包含)
 	 * @return
 	 * @Date 2017年3月14日 下午4:26:44
 	 */
 	List<Tuple<K, V>> getSequenceList(int start, int end);
+	
+	/**
+	 * 分页获取<key，value>数据列表
+	 * @param pageSize 分页大小
+	 * @param page 页数
+	 * @return
+	 * @Date 2017年3月25日 下午4:06:38
+	 */
+	default List<Tuple<K, V>> getListByPage(int pageSize, int page) {
+		int end = pageSize * page;
+		return getSequenceList(end - pageSize, end);
+	}
 
 	/**
-	 * 返回指定范围内的<key，value>列表，[low, high]
+	 * 返回指定范围内的<key，value>数据列表，[low, high]
 	 * @param low 低值(>=low)
 	 * @param high 高值(<=high)
 	 * @return

@@ -1,15 +1,8 @@
-/*
- * $Header: Logger.java
- * $Revision: 1.0.0.0
- * $CreateDate: 2013-12-12 下午08:36:35
- * $Owner: wangys
- */
 package com.hdaheizi.base.log;
-
 
 /**
  * Logger 通用标准接口类
- * @author wangys
+ * @author zhaodi
  * @version 1.0.0.0 2013-12-12 下午08:36:35
  */
 public interface Logger {

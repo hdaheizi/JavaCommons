@@ -1,20 +1,10 @@
-/*
- * $Header: DefaultLogger.java
- * $Revision: 1.0.0.0 
- * $CreateDate: 2014-1-3
- * $ModifyDate: 2014-1-3 上午11:40:35
- * $Owner: 
- *
- * Copyright (c) 2011-2012 Shanghai Reign Co. Ltd.
- * All Right Reserved.
- */
 package com.hdaheizi.base.log;
 
 import com.hdaheizi.base.util.MessageFormatter;
 
 /**
  * DefaultLogger
- * @author   wangys
+ * @author   zhaodi
  * @version  1.0.0.0  2014-1-3 上午11:40:35
  */
 public class DefaultLogger extends AbstractLogger {

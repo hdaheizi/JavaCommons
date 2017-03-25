@@ -103,7 +103,6 @@ public class CollectionTest {
 			it.next();
 			it.remove();
 		}
-		
 		System.exit(0);
 	}
 

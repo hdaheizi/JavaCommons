@@ -1,14 +1,8 @@
-/*
- * $Header: AbstractLogger.java
- * $Revision: 1.0.0.0
- * $CreateDate: 2013-12-12 下午08:53:55
- * $Owner: wangys
- */
 package com.hdaheizi.base.log;
 
 /**
  * AbstractLogger
- * @author wangys
+ * @author zhaodi
  * @version 1.0.0.0 2013-12-12 下午08:53:55
  */
 public abstract class AbstractLogger implements Logger {

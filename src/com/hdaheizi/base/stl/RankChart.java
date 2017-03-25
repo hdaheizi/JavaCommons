@@ -124,7 +124,7 @@ public class RankChart<K, V> implements IChart<K, V> {
 	}
 
 	/**
-	 * @see com.hdaheizi.base.stl.IRankChart#put(java.lang.Object, java.lang.Object)
+	 * @see com.hdaheizi.base.stl.IChart#put(java.lang.Object, java.lang.Object)
 	 */
 	@Override
 	public V put(K key, V value) {
@@ -153,6 +153,7 @@ public class RankChart<K, V> implements IChart<K, V> {
 				map.put(key, uniValue);
 			}
 			// 设置合适的orderId，以保证排行榜内不存在相等的uniValue
+			// 这里存在一些冗余的查询可能会影响效率
 			uniValue.orderId = MAX_ORDER_ID;
 			int lastPos = rank.getRank(uniValue);
 			uniValue.orderId = MIN_ORDER_ID;
@@ -180,7 +181,7 @@ public class RankChart<K, V> implements IChart<K, V> {
 	}
 
 	/**
-	 * @see com.hdaheizi.base.stl.IRankChart#remove(java.lang.Object)
+	 * @see com.hdaheizi.base.stl.IChart#remove(java.lang.Object)
 	 */
 	@Override
 	public V remove(K key) {
@@ -198,7 +199,7 @@ public class RankChart<K, V> implements IChart<K, V> {
 	}
 
 	/**
-	 * @see com.hdaheizi.base.stl.IRankChart#get(java.lang.Object)
+	 * @see com.hdaheizi.base.stl.IChart#get(java.lang.Object)
 	 */
 	@Override
 	public V get(K key) {
@@ -212,7 +213,7 @@ public class RankChart<K, V> implements IChart<K, V> {
 	}
 
 	/**
-	 * @see com.hdaheizi.base.stl.IRankChart#search(java.lang.Object)
+	 * @see com.hdaheizi.base.stl.IChart#search(java.lang.Object)
 	 */
 	@Override
 	public Tuple<Integer, V> search(K key) {
@@ -230,24 +231,24 @@ public class RankChart<K, V> implements IChart<K, V> {
 	}
 
 	/**
-	 * @see com.hdaheizi.base.stl.IRankChart#getKth(int)
+	 * @see com.hdaheizi.base.stl.IChart#getKth(int)
 	 */
 	@Override
 	public Tuple<K, V> getKth(int kth) {
 		rl.lock();
 		try {
-			UniqueValue uniValue = rank.getKth(kth);
-			if (uniValue == null) {
-				return new Tuple<>(null, null);
+			if (kth > 0 && kth <= size()) {
+				UniqueValue uniValue = rank.getKth(kth);
+				return new Tuple<>(uniValue.key, uniValue.value);
 			}
-			return new Tuple<>(uniValue.key, uniValue.value);
+			return null;
 		} finally {
 			rl.unlock();
 		}
 	}
 
 	/**
-	 * @see com.hdaheizi.base.stl.IRankChart#getSequenceList(int, int)
+	 * @see com.hdaheizi.base.stl.IChart#getSequenceList(int, int)
 	 */
 	@Override
 	public List<Tuple<K, V>> getSequenceList(int start, int end) {
@@ -255,7 +256,6 @@ public class RankChart<K, V> implements IChart<K, V> {
 		try {
 			List<Tuple<K, V>> list = new ArrayList<>();
 			int size = size();
-			start--;
 			start = start < 0 ? 0 : (start > size ? size : start);
 			RankIterator<UniqueValue> it = rank.rankIterator(start);
 			while (it.hasNext() && it.nextRank() <= end) {
@@ -269,20 +269,16 @@ public class RankChart<K, V> implements IChart<K, V> {
 	}
 
 	/**
-	 * @see com.hdaheizi.base.stl.IRankChart#getRangeList(java.lang.Object, java.lang.Object)
+	 * @see com.hdaheizi.base.stl.IChart#getRangeList(java.lang.Object, java.lang.Object)
 	 */
 	@Override
 	public List<Tuple<K, V>> getRangeList(V low, V high) {
 		rl.lock();
 		try {
 			int start = rank.getRank(new UniqueValue(null, low, MIN_ORDER_ID));
-			if (start < 0) {
-				start = -start;
-			}
+			start = start > 0 ? start - 1 : -start - 1;
 			int end = rank.getRank(new UniqueValue(null, high, MAX_ORDER_ID));
-			if (end < 0) {
-				end = -end - 1;
-			}
+			end = end > 0 ? end : -end - 1;
 			return getSequenceList(start, end);
 		} finally {
 			rl.unlock();
@@ -290,7 +286,7 @@ public class RankChart<K, V> implements IChart<K, V> {
 	}
 
 	/**
-	 * @see com.hdaheizi.base.stl.IRankChart#containsKey(java.lang.Object)
+	 * @see com.hdaheizi.base.stl.IChart#containsKey(java.lang.Object)
 	 */
 	@Override
 	public boolean containsKey(K key) {
@@ -303,7 +299,7 @@ public class RankChart<K, V> implements IChart<K, V> {
 	}
 
 	/**
-	 * @see com.hdaheizi.base.stl.IRankChart#size()
+	 * @see com.hdaheizi.base.stl.IChart#size()
 	 */
 	@Override
 	public int size() {
@@ -316,7 +312,7 @@ public class RankChart<K, V> implements IChart<K, V> {
 	}
 
 	/**
-	 * @see com.hdaheizi.base.stl.IRankChart#clear()
+	 * @see com.hdaheizi.base.stl.IChart#clear()
 	 */
 	@Override
 	public void clear() {
@@ -350,11 +346,12 @@ public class RankChart<K, V> implements IChart<K, V> {
 		for (int i = 1; i < 100; i++) {
 			r2.put(i, new Tuple<>(i, 100 - i));
 		}
-		System.out.println(r2.put(2, new Tuple<>(10, 90)));
+		System.out.println(r2.put(1, new Tuple<>(8, 5)));
+		System.out.println(r2.put(2, new Tuple<>(10, 80)));
 		System.out.println(r2.put(3, new Tuple<>(300, 0)));
 		System.out.println(r2.put(50, new Tuple<>(50, 51)));
 		System.out.println(r2.put(3, new Tuple<>(10, 90)));
-		System.out.println(Arrays.toString(r2.getSequenceList(1, 100).toArray()));
+		System.out.println(Arrays.toString(r2.getSequenceList(-3, 6).toArray()));
 
 		IChart<Integer, Integer> r = new RankChart<>();
 		r.put(1, 30);
@@ -383,7 +380,7 @@ public class RankChart<K, V> implements IChart<K, V> {
 		Collections.shuffle(li);
 		ns1 = System.nanoTime();
 		for (Integer i : li) {
-			r.put(i, i / 100);
+			r.put(i, i / 10);
 		}
 		ns2 = System.nanoTime();
 		System.out.println("put: " + (ns2 - ns1) / num);
@@ -391,7 +388,7 @@ public class RankChart<K, V> implements IChart<K, V> {
 		Collections.shuffle(li);
 		ns1 = System.nanoTime();
 		for (Integer i : li) {
-			r.put(i, i / 100 + 1);
+			r.put(i, i / 10 + 1);
 		}
 		ns2 = System.nanoTime();
 		System.out.println("put: " + (ns2 - ns1) / num);
@@ -421,6 +418,7 @@ public class RankChart<K, V> implements IChart<K, V> {
 		ns2 = System.nanoTime();
 		System.out.println("delete:" + (ns2 - ns1) / num);
 
+		System.exit(0);
 
 		// *****压力测试
 		System.out.println("****test synchronization, num :" + li.size() + " ,time unit: (ns)");

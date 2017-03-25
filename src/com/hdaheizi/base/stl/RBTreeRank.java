@@ -30,7 +30,6 @@ public class RBTreeRank<K> implements IRank<K> {
 	/** 树结构修改的次数 */
 	private transient int modCount = 0;
 
-
 	/**
 	 * 节点类
 	 * @param <K>
@@ -104,7 +103,6 @@ public class RBTreeRank<K> implements IRank<K> {
 			return key == null ? "" : key.toString();
 		}
 	}
-
 
 	/**
 	 * 构造函数
@@ -185,7 +183,10 @@ public class RBTreeRank<K> implements IRank<K> {
 	 */
 	@Override
 	public final K getFirst() {
-		return keyOf(minimum(root));
+		if (root == null) {
+			throw new NoSuchElementException();
+		}
+		return minimum(root).key;
 	}
 
 	/**
@@ -196,7 +197,10 @@ public class RBTreeRank<K> implements IRank<K> {
 	 */
 	@Override
 	public final K getLast() {
-		return keyOf(maximum(root));
+		if (root == null) {
+			throw new NoSuchElementException();
+		}
+		return maximum(root).key;
 	}
 
 	/**
@@ -746,10 +750,10 @@ public class RBTreeRank<K> implements IRank<K> {
 		 * 构造函数
 		 * @param 起始名次
 		 */
-		RankItr(int rank) {
+		RankItr(int kth) {
 			expectedModCount = modCount;
-			next = rank == size() ? null : getKthNode(rank + 1);
-			lastRank = rank;
+			next = kth == size() ? null : getKthNode(kth + 1);
+			lastRank = kth;
 		}
 
 		/**
@@ -880,18 +884,18 @@ public class RBTreeRank<K> implements IRank<K> {
 
 	/**
 	 * 返回一个指定起始名次的RankIterator
-	 * @param rank [0,size]，调用previous()时返回的第一个关键字的名次为 rank
-	 *                       调用next()时返回的第一个关键字的名次为 rank+1
+	 * @param kth [0,size]，调用previous()时返回的第一个关键字的名次为 kth
+	 *                       调用next()时返回的第一个关键字的名次为 kth+1
 	 * @return
 	 * @Date 2017年3月11日 下午5:13:25
 	 * @see com.hdaheizi.base.stl.IRank#rankIterator(int)
 	 */
 	@Override
-	public RankIterator<K> rankIterator(int rank) {
-		if (!(rank >= 0 && rank <= size())) {
-			throw new IndexOutOfBoundsException(outOfBoundsMsg(rank));
+	public RankIterator<K> rankIterator(int kth) {
+		if (!(kth >= 0 && kth <= size())) {
+			throw new IndexOutOfBoundsException(outOfBoundsMsg(kth));
 		}
-		return new RankItr(rank);
+		return new RankItr(kth);
 	}
 
 	/**
@@ -963,7 +967,7 @@ public class RBTreeRank<K> implements IRank<K> {
 
 
 
-	/****************** 以下为一些不发布的辅助和测试方法 ***************************/
+	/****************** 以下为一些非必需的辅助和测试方法 ***************************/
 
 	/**
 	 * 单元测试

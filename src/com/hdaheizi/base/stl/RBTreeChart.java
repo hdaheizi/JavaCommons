@@ -1,5 +1,6 @@
 package com.hdaheizi.base.stl;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -16,7 +17,7 @@ import java.util.NoSuchElementException;
  * @author daheiz
  * @Date 2017年3月3日 下午5:35:04
  */
-public class RBTreeChart<K, V> {
+public class RBTreeChart<K, V> implements IChart<K, V> {
 
 	/** 颜色常量 */
 	private static final boolean RED   = false;
@@ -30,8 +31,8 @@ public class RBTreeChart<K, V> {
 
 	/** 树结构修改的次数 */
 	private transient int modCount = 0;
-	
-	/** nodeMap */
+
+	/** 关键字key与所属节点映射表 */
 	private Map<K, Node<K, V>> nodeMap;
 
 
@@ -41,9 +42,7 @@ public class RBTreeChart<K, V> {
 	 * @author daheiz
 	 * @Date 2017年3月10日 下午11:37:11
 	 */
-	static final class Node<K, V> {
-		/** 存储数据的实体 */
-		Entry<K, V> entry;
+	private static final class Node<K, V> {
 		/** 父节点 */
 		Node<K, V> parent;
 		/** 左子树 */
@@ -54,6 +53,8 @@ public class RBTreeChart<K, V> {
 		boolean color;
 		/** 以自身为根的子树包含节点数目 */
 		int size;
+		/** 存储相等数据的双循环链表的头指针 */
+		Entry<K, V> first;
 		/** 内部包含相等数据的数量 */
 		int amount;
 
@@ -81,97 +82,93 @@ public class RBTreeChart<K, V> {
 				size += right.size;
 			}
 		}
-		
-		Entry<K, V> getKth(int rank) {
-			if (rank <= 0 || rank > amount) {
-				return null;
-			} else if (rank > amount >>> 1) {
-				for (Entry<K, V> e = entry.prev; ; e = e.prev) {
-					if (rank++ == amount) {
-						return e;
-					}
-				}
+
+		void addEntry(Entry<K, V> e) {
+			if (first == null) {
+				e.prev = e.next = first = e;
 			} else {
-				for (Entry<K, V> e = entry; ; e = e.next) {
-					if (--rank == 0) {
-						return e;
-					}
-				}
+				e.next = first;
+				e.prev = first.prev;
+				first.prev.next = e;
+				first.prev = e;
 			}
+			amount++;
 		}
-		
+
+		void removeEntry(Entry<K, V> e) {
+			if (e.prev == e) {
+				first = null;
+			} else {
+				if (e == first) {
+					first = e.next;
+				}
+				e.prev.next = e.next;
+				e.next.prev = e.prev;
+			}
+			amount--;
+		}
+
 		Entry<K, V> getEntry(K key) {
-			if (entry != null) {
-				Entry<K, V> e = entry;
+			if (first != null) {
+				Entry<K, V> e = first;
 				do {
 					if (objEquals(e.key, key)) {
 						return e;
 					}
 					e = e.next;
-				} while (e != entry);
+				} while (e != first);
 			}
 			return null;
 		}
-		
+
 		Tuple<Integer, V> search(K key) {
 			int rank = 1;
-			if (entry != null) {
-				Entry<K, V> e = entry;
+			if (first != null) {
+				Entry<K, V> e = first;
 				do {
 					if (objEquals(e.key, key)) {
 						return new Tuple<>(rank, e.value);
 					}
 					e = e.next;
 					rank++;
-				} while (e != entry);
+				} while (e != first);
 			}
 			return new Tuple<>(-1, null);
 		}
 		
-		V put(K key, V value) {
-			V pre = null;
-			if (entry == null) {
-				entry = new Entry<K, V>(key, value);
-				amount++;
-			} else if (objEquals(entry.key, key)) {
-				pre = entry.value;
-				entry.value = value;
+		int getRank(K key) {
+			int rank = 1;
+			if (first != null) {
+				Entry<K, V> e = first;
+				do {
+					if (objEquals(e.key, key)) {
+						return rank;
+					}
+					e = e.next;
+					rank++;
+				} while (e != first);
+			}
+			return -1;
+		}
+
+		Entry<K, V> getKth(int kth) {
+			if (kth <= 0 || kth > amount) {
+				return null;
+			} else if (kth > amount >>> 1) {
+				for (Entry<K, V> e = first.prev; ; e = e.prev) {
+					if (kth++ == amount) {
+						return e;
+					}
+				}
 			} else {
-				Entry<K, V> e = entry;
-				for (; e.next != null; e = e.next) {
-					if (objEquals(e.next.key, key)) {
-						pre = e.next.value;
-						e.next.value = value;
-						return pre;
-					}
-				}
-				e.next = new Entry<K, V>(key, value);
-				amount++;
-			}
-			return pre;
-		}
-		
-		V remove(K key) {
-			V pre = null;
-			if (entry != null) {
-				if (objEquals(entry.key, key)) {
-					pre = entry.value;
-					entry = entry.next;
-					amount--;
-				} else {
-					for (Entry<K, V> e = entry; e.next != null; e = e.next) {
-						if (objEquals(e.next.key, key)) {
-							pre = e.next.value;
-							e.next = e.next.next;
-							amount--;
-							break;
-						}
+				for (Entry<K, V> e = first; ; e = e.next) {
+					if (--kth == 0) {
+						return e;
 					}
 				}
 			}
-			return pre;
 		}
-		
+
 		/**
 		 * @see java.lang.Object#equals(java.lang.Object)
 		 */
@@ -181,17 +178,17 @@ public class RBTreeChart<K, V> {
 				return false;
 			}
 			Node<?, ?> e = (Node<?, ?>) o;
-			return objEquals(entry, e.entry);
+			return objEquals(first, e.first);
 		}
 
-        /**
-         * @see java.lang.Object#hashCode()
-         */
-        public int hashCode() {
-            return entry == null ? 0 : entry.hashCode();
-        }
+		/**
+		 * @see java.lang.Object#hashCode()
+		 */
+		public int hashCode() {
+			return first == null ? 0 : first.hashCode();
+		}
 	}
-	
+
 	/**
 	 * 存储数据的实体类
 	 * @param <K>
@@ -208,7 +205,7 @@ public class RBTreeChart<K, V> {
 		Entry<K, V> prev;
 		/** 位于同一个Node的后一个entry，最后一个entry的next指向第一个*/
 		Entry<K, V> next;
-		
+
 		/**
 		 * 构造函数
 		 * @param key
@@ -218,25 +215,7 @@ public class RBTreeChart<K, V> {
 			this.key = key;
 			this.value = value;
 		}
-		
-		/**
-		 * 获取键
-		 * @return
-		 * @Date 2017年3月19日 下午6:46:57
-		 */
-		public K getKey() {
-			return key;
-		}
-		
-		/**
-		 * 获取值
-		 * @return
-		 * @Date 2017年3月19日 下午6:46:59
-		 */
-		public V getValue() {
-			return value;
-		}
-		
+
 		/**
 		 * @see java.lang.Object#equals(java.lang.Object)
 		 */
@@ -248,22 +227,31 @@ public class RBTreeChart<K, V> {
 			Entry<?, ?> e = (Entry<?, ?>) o;
 			return objEquals(key, e.key) && objEquals(value, e.value);
 		}
-		
-        /**
-         * @see java.lang.Object#hashCode()
-         */
-        public int hashCode() {
-            int keyHash = (key == null ? 0 : key.hashCode());
-            int valueHash = (value == null ? 0 : value.hashCode());
-            return keyHash ^ valueHash;
-        }
-        
-        /**
-         * @see java.lang.Object#toString()
-         */
-        public String toString() {
-            return key + "=" + value;
-        }
+
+		/**
+		 * @see java.lang.Object#hashCode()
+		 */
+		public int hashCode() {
+			int keyHash = (key == null ? 0 : key.hashCode());
+			int valueHash = (value == null ? 0 : value.hashCode());
+			return keyHash ^ valueHash;
+		}
+
+		/**
+		 * @see java.lang.Object#toString()
+		 */
+		public String toString() {
+			return key + "=" + value;
+		}
+
+		/**
+		 * 生成Tuple结构的数据
+		 * @return
+		 * @Date 2017年3月23日 下午7:17:38
+		 */
+		Tuple<K, V> tuple() {
+			return new Tuple<>(key, value);
+		}
 	}
 
 	/**
@@ -296,7 +284,7 @@ public class RBTreeChart<K, V> {
 		return comparator == null ? ((Comparable<? super V>)v1).compareTo(v2)
 				: comparator.compare(v1, v2);
 	}
-	
+
 	/**
 	 * 比较两个对象是否相等
 	 * @param o1
@@ -322,17 +310,31 @@ public class RBTreeChart<K, V> {
 		}
 		Node<K, V> p = node;
 		Tuple<Integer, V> result = node.search(key);
-		if (result.right != null) {
-			int extraNum = sizeOf(p.left);
+		int extraNum = sizeOf(p.left);
+		while (p != root) {
+			if (p == p.parent.right) {
+				extraNum += sizeOf(p.parent.left) + p.parent.amount;
+			}
+			p = p.parent;
+		}
+		result.left += extraNum;
+		return result;
+	}
+	
+	public int getRank(K key) {
+		Node<K, V> node = nodeMap.get(key);
+		if (node != null) {
+			int rank = sizeOf(node.left) + node.getRank(key);
+			Node<K, V> p = node;
 			while (p != root) {
 				if (p == p.parent.right) {
-					extraNum += sizeOf(p.parent.left) + p.parent.amount;
+					rank += sizeOf(p.parent.left) + p.parent.amount;
 				}
 				p = p.parent;
 			}
-			result.left += extraNum;
+			return rank;
 		}
-		return result;
+		return -1;
 	}
 
 	/**
@@ -373,6 +375,7 @@ public class RBTreeChart<K, V> {
 	 * @return
 	 * @Date 2017年3月11日 上午12:20:39
 	 */
+	@SuppressWarnings("unused")
 	private static <K, V> Node<K, V> predecessor(Node<K, V> x) {
 		if (x == null) {
 			return null;
@@ -486,18 +489,11 @@ public class RBTreeChart<K, V> {
 				modCount--;
 				return preValue;
 			} else {
-				if (entry.prev == entry) {
-					preNode.entry = null;
-					preNode.amount--;
+				preNode.removeEntry(entry);
+				if (preNode.first == null) {
 					deleteNode(preNode);
 					nodeMap.remove(key);
 				} else {
-					entry.prev.next = entry.next;
-					entry.next.prev = entry.prev;
-					if (preNode.entry == entry) {
-						preNode.entry = entry.next;
-					}
-					preNode.amount--;
 					fixNodeSizeUpward(preNode);
 				}
 			}
@@ -508,17 +504,13 @@ public class RBTreeChart<K, V> {
 		if(comparator != null) {
 			while(x != null) {
 				y = x;
-				cmp = comparator.compare(value, x.entry.value);
+				cmp = comparator.compare(value, x.first.value);
 				if (cmp < 0) {
 					x = x.left;
 				} else if (cmp > 0) {
 					x = x.right;
 				} else {
-					newEntry.next = x.entry;
-					newEntry.prev = x.entry.prev;
-					x.entry.prev.next = newEntry;
-					x.entry.prev = newEntry;
-					x.amount++;
+					x.addEntry(newEntry);
 					fixNodeSizeUpward(x);
 					nodeMap.put(key, x);
 					return preValue;
@@ -529,17 +521,13 @@ public class RBTreeChart<K, V> {
 			Comparable<? super V> k = (Comparable<? super V>) value;
 			while (x != null) {
 				y = x;
-				cmp = k.compareTo(x.entry.value);
+				cmp = k.compareTo(x.first.value);
 				if (cmp < 0) {
 					x = x.left;
 				} else if (cmp > 0) {
 					x = x.right;
 				} else {
-					newEntry.next = x.entry;
-					newEntry.prev = x.entry.prev;
-					x.entry.prev.next = newEntry;
-					x.entry.prev = newEntry;
-					x.amount++;
+					x.addEntry(newEntry);
 					fixNodeSizeUpward(x);
 					nodeMap.put(key, x);
 					return preValue;
@@ -547,13 +535,10 @@ public class RBTreeChart<K, V> {
 			}
 		}
 		Node<K, V> z = new Node<>(y);
-		newEntry.next = newEntry;
-		newEntry.prev = newEntry;
-		z.entry = newEntry;
-		z.amount++;
+		z.addEntry(newEntry);
 		if (y == null){
 			root = z;
-		} else if (compare(z.entry.value, y.entry.value) < 0) {
+		} else if (compare(z.first.value, y.first.value) < 0) {
 			y.left = z;
 		} else {
 			y.right = z;
@@ -648,17 +633,10 @@ public class RBTreeChart<K, V> {
 			modCount++;
 			Entry<K, V> entry = preNode.getEntry(key);
 			preValue = entry.value;
-			if (entry.prev == entry) {
-//				preNode.entry = null;
-//				preNode.amount--;
+			preNode.removeEntry(entry);
+			if (preNode.first == null) {
 				deleteNode(preNode);
 			} else {
-				entry.prev.next = entry.next;
-				entry.next.prev = entry.prev;
-				if (preNode.entry == entry) {
-					preNode.entry = entry.next;
-				}
-				preNode.amount--;
 				fixNodeSizeUpward(preNode);
 			}
 		}
@@ -798,44 +776,75 @@ public class RBTreeChart<K, V> {
 	}
 
 	/**
+	 * 返回排名信息
+	 * @param value
+	 * @return {小于value的数目，等于value的数目}
+	 * @Date 2017年3月24日 下午7:43:16
+	 */
+	private int[] getRankInfo(V value) {
+		int[] info = new int[]{0, 0};
+		int cmp;
+		Node<K, V> p = root;
+		while (p != null) {
+			cmp = compare(value, p.first.value);
+			if (cmp == 0) {
+				info[0] += sizeOf(p.left);
+				info[1] = p.amount;
+				break;
+			} else if (cmp < 0) {
+				p = p.left;
+			} else {
+				info[0] += sizeOf(p.left) + p.amount;
+				p = p.right;
+			}
+		}
+		return info;
+	}
+
+	/**
 	 * 返回对应名次的值
-	 * @param rank
+	 * @param kth
 	 * @return
-	 * @throws IndexOutOfBoundsException 当名次rank越界时抛出异常
 	 * @Date 2017年3月11日 下午3:02:32
 	 */
-	public Entry<K, V> getKth(int rank) {
-		if (!(rank > 0 && rank <= size())) {
-			throw new IndexOutOfBoundsException(outOfBoundsMsg(rank));
+	public Tuple<K, V> getKth(int kth) {
+		if (kth > 0 && kth <= size()) {
+			return getKthEntry(kth).tuple();
 		}
-		return getKthNodeEntry(rank).right;
+		return null;
 	}
-	
-	private Tuple<Node<K, V>, Entry<K, V>> getKthNodeEntry(int rank) {
+
+	/**
+	 * 返回第k个数据
+	 * @param rank
+	 * @return
+	 * @Date 2017年3月23日 下午7:24:35
+	 */
+	private Entry<K, V> getKthEntry(int kth) {
 		Node<K, V> p = root;
 		int ls;
 		while (p != null) {
 			ls = sizeOf(p.left);
-			if (rank <= ls) {
+			if (kth <= ls) {
 				p = p.left;
-			} else if (rank > ls + p.amount) {
+			} else if (kth > ls + p.amount) {
 				p = p.right;
-				rank -= ls + p.amount;
+				kth -= ls + p.amount;
 			} else {
-				break;
+				kth -= ls;
+				return p.getKth(kth);
 			}
 		}
-		return new Tuple<>(p, p == null ? null : p.getKth(rank));
+		return null;
 	}
 
 	/**
-	 * 生成越界信息
-	 * @param rank
-	 * @return
-	 * @Date 2017年3月13日 下午11:01:01
+	 * @see com.hdaheizi.base.stl.IChart#get(java.lang.Object)
 	 */
-	private String outOfBoundsMsg(int rank) {
-		return "Rank: " + rank + ", Size: " + size();
+	@Override
+	public V get(K key) {
+		Node<K, V> node = nodeMap.get(key);
+		return node == null ? null : node.getEntry(key).value;
 	}
 
 	/**
@@ -882,13 +891,13 @@ public class RBTreeChart<K, V> {
 	 * @author daheiz
 	 * @Date 2017年3月14日 上午12:56:17
 	 */
-	private class RankItr implements RankIterator<Node<K, V>> {
-		/** 前一个节点 */
-		private Node<K, V> last;
-		/** 后一个节点 */
-		private Node<K, V> next;
-		/** 前一个元素的名次 */
-		private int lastRank;
+	private class Itr implements Iterator<Entry<K, V>> {
+		/** 下一个node */
+		private Node<K, V> nextNode;
+		/** 下一个entry */
+		private Entry<K, V> nextEntry;
+		/** 上一个entry */
+		private Entry<K, V> lastEntry;
 		/** 期待的被修改次数 */
 		private int expectedModCount;
 
@@ -896,10 +905,10 @@ public class RBTreeChart<K, V> {
 		 * 构造函数
 		 * @param 起始名次
 		 */
-		RankItr(int rank) {
+		Itr(int kth) {
 			expectedModCount = modCount;
-			next = rank == size() ? null : getKthNodeEntry(rank + 1).left;
-			lastRank = rank;
+			nextEntry = kth == size() ? null : getKthEntry(kth + 1);
+			nextNode = nextEntry == null ? null : nodeMap.get(nextEntry.key);
 		}
 
 		/**
@@ -907,46 +916,28 @@ public class RBTreeChart<K, V> {
 		 */
 		@Override
 		public final boolean hasNext() {
-			return lastRank < size();
+			return nextNode != null;
 		}
 
 		/**
 		 * @see java.util.Iterator#next()
 		 */
 		@Override
-		public Node<K, V> next() {
+		public Entry<K, V> next() {
 			checkForComodification();
 			if (!hasNext()) {
 				throw new NoSuchElementException();
 			}
-			last = next;
-			next = successor(next);
-			lastRank++;
-			return last;
-		}
-
-		/**
-		 * 是否存在前一个值
-		 * @return
-		 * @Date 2017年3月13日 下午9:12:19
-		 */
-		public boolean hasPrevious() {
-			return lastRank > 0;
-		}
-
-		/**
-		 * 移动到前一个值
-		 * @return
-		 * @Date 2017年3月13日 下午9:12:31
-		 */
-		public Node<K, V> previous() {
-			checkForComodification();
-			if (!hasPrevious()) {
-				throw new NoSuchElementException();
+			lastEntry = nextEntry;
+			if (nextEntry.next == nextNode.first) {
+				// 当前Node中最后一个entry
+				nextNode = successor(nextNode);
+				nextEntry = nextNode == null ? null : nextNode.first;
+			} else {
+				// 当前Node中的下一个Entry
+				nextEntry = nextEntry.next;
 			}
-			last = next = (next == null ? maximum(root) : predecessor(next));
-			lastRank--;
-			return last;
+			return lastEntry;
 		}
 
 		/**
@@ -955,36 +946,18 @@ public class RBTreeChart<K, V> {
 		@Override
 		public void remove() {
 			checkForComodification();
-			if (last == null) {
+			if (lastEntry == null) {
 				throw new IllegalStateException();
 			}
-			Node<K, V> lastNext = successor(last);
-			deleteNode(last);
-			if (next == last) {
-				next = lastNext;
+			Node<K, V> lastNode = nodeMap.remove(lastEntry.key);
+			lastNode.removeEntry(lastEntry);
+			if (lastNode.first == null) {
+				deleteNode(lastNode);
 			} else {
-				lastRank--;
+				fixNodeSizeUpward(lastNode);
 			}
-			last = null;
+			lastEntry = null;
 			expectedModCount = ++modCount;
-		}
-
-		/**
-		 * 返回后一个值的名次
-		 * @return
-		 * @Date 2017年3月13日 下午10:13:53
-		 */
-		public int nextRank() {
-			return lastRank + 1;
-		}
-
-		/**
-		 * 返回前一个值的名次
-		 * @return
-		 * @Date 2017年3月13日 下午10:13:53
-		 */
-		public int previousRank() {
-			return lastRank;
 		}
 
 		/**
@@ -999,35 +972,13 @@ public class RBTreeChart<K, V> {
 	}
 
 	/**
-	 * 返回一个迭代器
+	 * 返回一个指定起始名次kth的迭代器Iterator<Entry<K, V>>
+	 * @param kth [0,size]，调用next()时返回的第一个Entry<K, V>的名次为 kth+1  
 	 * @return
 	 * @Date 2017年3月11日 下午5:13:25
 	 */
-	public Iterator<Node<K, V>> iterator() {
-		return rankIterator();
-	}
-
-	/**
-	 * 返回一个RankIterator
-	 * @return
-	 * @Date 2017年3月11日 下午5:13:25
-	 */
-	public RankIterator<Node<K, V>> rankIterator() {
-		return rankIterator(0);
-	}
-
-	/**
-	 * 返回一个指定起始名次的RankIterator
-	 * @param rank [0,size]，调用previous()时返回的第一个值的名次为 rank
-	 *                       调用next()时返回的第一个值的名次为 rank+1
-	 * @return
-	 * @Date 2017年3月11日 下午5:13:25
-	 */
-	public RankIterator<Node<K, V>> rankIterator(int rank) {
-		if (!(rank >= 0 && rank <= size())) {
-			throw new IndexOutOfBoundsException(outOfBoundsMsg(rank));
-		}
-		return new RankItr(rank);
+	private Iterator<Entry<K, V>> iterator(int kth) {
+		return new Itr(kth);
 	}
 
 	/**
@@ -1084,10 +1035,36 @@ public class RBTreeChart<K, V> {
 		if (p != null)
 			p.color = c;
 	}
-	
-	
-	
-	/****************** 以下为一些不发布的辅助和测试方法 ***************************/
+
+	/**
+	 * @see com.hdaheizi.base.stl.IChart#getSequenceList(int, int)
+	 */
+	@Override
+	public List<Tuple<K, V>> getSequenceList(int start, int end) {
+		List<Tuple<K, V>> list = new ArrayList<>();
+		int size = size();
+		int kth = start < 0 ? 0 : (start > size ? size : start);
+		Iterator<Entry<K, V>> it = iterator(kth);
+		while (it.hasNext() && ++kth <= end) {
+			list.add(it.next().tuple());
+		}
+		return list;
+	}
+
+	/**
+	 * @see com.hdaheizi.base.stl.IChart#getRangeList(java.lang.Object, java.lang.Object)
+	 */
+	@Override
+	public List<Tuple<K, V>> getRangeList(V low, V high) {
+		int[] info1 = getRankInfo(low);
+		int start = info1[0];
+		int[] info2 = getRankInfo(high);
+		int end = info2[0] + info2[1];
+		return getSequenceList(start, end);
+	}
+
+
+	/****************** 以下为一些非必需的辅助和测试方法 ***************************/
 
 	/**
 	 * 单元测试
@@ -1098,60 +1075,77 @@ public class RBTreeChart<K, V> {
 		RBTreeChart<Integer, Tuple<Integer, Integer>> r2 = new RBTreeChart<>(
 				new Comparator<Tuple<Integer, Integer>>() {
 
-			@Override
-			public int compare(Tuple<Integer, Integer> o1,
-					Tuple<Integer, Integer> o2) {
-				return o1.left + o1.right - o2.left - o2.right;
-			}
-		});
+					@Override
+					public int compare(Tuple<Integer, Integer> o1,
+							Tuple<Integer, Integer> o2) {
+						return o1.left + o1.right - o2.left - o2.right;
+					}
+				});
 
 		for (int i = 1; i < 100; i++) {
 			r2.put(i, new Tuple<>(i, 100 - i));
 		}
-		System.out.println(r2.put(2, new Tuple<>(10, 90)));
+		System.out.println(r2.put(1, new Tuple<>(8, 5)));
+		System.out.println(r2.put(2, new Tuple<>(10, 80)));
 		System.out.println(r2.put(3, new Tuple<>(300, 0)));
-		System.out.println(r2.put(50, new Tuple<>(50, 51)));
+		System.out.println(r2.put(50, new Tuple<>(50, 90)));
+		System.out.println(r2.put(60, new Tuple<>(50, 90)));
+		System.out.println(r2.put(150, new Tuple<>(20, 90)));
 		System.out.println(r2.put(3, new Tuple<>(10, 90)));
-//		System.out.println(Arrays.toString(r2.getSequenceList(1, 100).toArray()));
-		
-		System.exit(0);
-		
-		RBTreeChart<Integer, Integer> r = new RBTreeChart<>();
-		for (int i = 1; i < 100; i++) {
-			r.put(i, i / 3);
+		System.out.println(Arrays.toString(r2.getSequenceList(-3, 6).toArray()));
+		System.out.println(r2.remove(2));
+		System.out.println(r2.remove(16));
+		Iterator<Entry<Integer, Tuple<Integer, Integer>>> it = r2.iterator(15);
+		while (it.hasNext()) {
+			Entry<Integer, Tuple<Integer, Integer>> e = it.next();
+			if (e.key >= 15 && e.key < 98) {
+				it.remove();
+			}
 		}
-		r.remove(58);
-		r.remove(59);
-		r.check();
-		System.out.println(r.getKth(90));
-		System.out.println(r.outputTree());
+		System.out.println(r2.remove(99));
+		System.out.println(r2.getKth(0));
+		System.out.println(r2.getKth(1));
+		System.out.println(r2.getKth(2));
+		System.out.println(r2.getKth(3));
+		System.out.println(r2.getKth(15));
+		System.out.println(r2.getKth(30));
+		System.out.println(r2.size());
+		r2.check();
+		System.out.println(Arrays.toString(r2.getSequenceList(1, 100).toArray()));
+		System.out.println(Arrays.toString(r2.getRangeList(new Tuple<>(80, 0), new Tuple<>(100, 0)).toArray()));
+		for (int i = 5; i < 15; i++) {
+			r2.put(i, new Tuple<>(i, i * 10 - i));
+		}
+		System.out.println(r2.outputTree());
+		System.exit(0);
+
 		
-		
-		// *****测试效率
+		IChart<Integer, Integer> r = new RBTreeChart<>();
 		r.clear();
-		int num = 100000;
+		int num = 1000000;
 		Integer[] a = new Integer[num];
 		for (int i = 0; i < num; ++i) {
 			a[i] = i;
 		}
 		List<Integer> li = Arrays.asList(a);
+		// *****测试效率
 		System.out.println("****test speed, num :" + li.size() + " ,time unit: (ns)");
-		
+
 		long ns1, ns2;
 		// 插入
 		Collections.shuffle(li);
 		ns1 = System.nanoTime();
 		for (Integer i : li) {
-			r.put(i, i / 100);
+			r.put(i, i / 10);
 		}
 		ns2 = System.nanoTime();
 		System.out.println("put: " + (ns2 - ns1) / num);
-		
+
 		// 插入
 		Collections.shuffle(li);
 		ns1 = System.nanoTime();
 		for (Integer i : li) {
-			r.put(i, i / 100 + 1);
+			r.put(i, i / 10 + 1);
 		}
 		ns2 = System.nanoTime();
 		System.out.println("put: " + (ns2 - ns1) / num);
@@ -1164,14 +1158,14 @@ public class RBTreeChart<K, V> {
 		}
 		ns2 = System.nanoTime();
 		System.out.println("search: " + (ns2 - ns1) / num);
-//		// 顺次
-//		Collections.shuffle(li);
-//		ns1 = System.nanoTime();
-//		for (int i = 1; i <= num; i++) {
-//			r.getSequenceList(i, i);
-//		}
-//		ns2 = System.nanoTime();
-//		System.out.println("kth:" + (ns2 - ns1) / num);
+		// 顺次
+		Collections.shuffle(li);
+		ns1 = System.nanoTime();
+		for (int i = 1; i <= num; i++) {
+			r.getSequenceList(i, i);
+		}
+		ns2 = System.nanoTime();
+		System.out.println("kth:" + (ns2 - ns1) / num);
 		// 删除
 		Collections.shuffle(li);
 		ns1 = System.nanoTime();
@@ -1180,8 +1174,10 @@ public class RBTreeChart<K, V> {
 		}
 		ns2 = System.nanoTime();
 		System.out.println("delete:" + (ns2 - ns1) / num);
+
+		System.exit(0);
 	}
-	
+
 	/**
 	 * 生成红黑树的内部结构字符串
 	 * @return
@@ -1218,30 +1214,29 @@ public class RBTreeChart<K, V> {
 			outputTreeImpl(sb, p.left, true, indent + (left ? " " : "|") + "    ");
 		}
 	}
-	
-    private String output(Node<K, V> p) {
-    	StringBuilder sb = new StringBuilder();
-    	sb.append("[");
-		if (p.entry != null) {
-			Entry<K, V> e = p.entry;
+
+	private String output(Node<K, V> p) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("[");
+		if (p.first != null) {
+			Entry<K, V> e = p.first;
 			do {
-	    		sb.append(e.toString())
-	    		  .append(",");
-	    		e = e.next;
-			} while (e != p.entry);
+				sb.append(e.toString())
+				.append(",");
+				e = e.next;
+			} while (e != p.first);
 		}
-    	int lastCommaIndex = sb.lastIndexOf(",");
-    	if (lastCommaIndex == -1) {
-    		sb.append("]");
-    	} else {
-    		sb.setCharAt(lastCommaIndex, ']');
-    	}
-        return sb.toString();
-    }
-	
+		int lastCommaIndex = sb.lastIndexOf(",");
+		if (lastCommaIndex == -1) {
+			sb.append("]");
+		} else {
+			sb.setCharAt(lastCommaIndex, ']');
+		}
+		return sb.toString();
+	}
 
 	/**
-	 * 验证RBTreeRank的正确性
+	 * 验证RBTree结构的正确性
 	 * @Date 2017年3月11日 下午5:11:39
 	 */
 	private void check() {
@@ -1270,8 +1265,8 @@ public class RBTreeChart<K, V> {
 			if (!isSortTree(p.left) || !isSortTree(p.right)) {
 				return false;
 			}
-			if (p.left != null && compare(p.left.entry.value, p.entry.value) >= 0 
-					|| p.right != null && compare(p.right.entry.value, p.entry.value) <= 0) {
+			if (p.left != null && compare(p.left.first.value, p.first.value) >= 0 
+					|| p.right != null && compare(p.right.first.value, p.first.value) <= 0) {
 				return false;
 			}
 		}
