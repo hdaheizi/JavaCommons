@@ -23,31 +23,27 @@ public class Tuple<L, R> implements Serializable {
 	/**
 	 * 构造函数
 	 */
-	public Tuple(){
-
-	}
+	public Tuple() {}
 
 	/**
 	 * 构造函数
 	 * @param left
 	 * @param right
 	 */
-	public Tuple(L left, R right){
+	public Tuple(L left, R right) {
 		this.left = left;
 		this.right = right;
 	}
-
 
 	/**
 	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
-	public int hashCode(){
+	public int hashCode() {
 		int leftCode = left == null ? 0 : left.hashCode();
 		int rigthCode = right == null ? 0 : right.hashCode();
 		return leftCode ^ rigthCode;
 	}
-
 
 	/**
 	 * @see java.lang.Object#equals(java.lang.Object)
@@ -76,8 +72,7 @@ public class Tuple<L, R> implements Serializable {
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
-	public String toString(){
+	public String toString() {
 		return "[left=" + left + ", right=" + right + "]";
 	}
-
 }

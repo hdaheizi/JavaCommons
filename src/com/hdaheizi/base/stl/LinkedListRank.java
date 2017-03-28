@@ -6,6 +6,7 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Random;
 
 /**
  * 基于LinkedList的排行榜
@@ -132,48 +133,49 @@ public class LinkedListRank<K> extends AbstractListRank<K> {
 
 
 		// *****测试效率
-		r.clear();
-		System.out.println("****test speed, num :" + li.size() + " ,time unit: (ns)");
-		long ns1, ns2;
-		// 插入
+		// 准备数据
 		Collections.shuffle(li);
-		ns1 = System.nanoTime();
 		for (Integer i : li) {
 			r.add(i);
 		}
+		int times = num / 1000;
+		Random random = new Random();
+		System.out.println("****test speed, num :" + li.size() + " ,time unit: (ns)");
+		long ns1, ns2;
+		// 插入
+		ns1 = System.nanoTime();
+		for (int i = 0; i < times; i++) {
+			r.add(random.nextInt(num * 2));
+		}
 		ns2 = System.nanoTime();
-		System.out.println("add: " + (ns2 - ns1) / num);
+		System.out.println("add: " + (ns2 - ns1) / times);
 		// 查找
-		Collections.shuffle(li);
 		ns1 = System.nanoTime();
-		for (Integer i : li) {
-			r.contains(i);
+		for (int i = 0; i < times; i++) {
+			r.contains(random.nextInt(num * 2));
 		}
 		ns2 = System.nanoTime();
-		System.out.println("contains: " + (ns2 - ns1) / num);
+		System.out.println("contains: " + (ns2 - ns1) / times);
 		// 名次
-		Collections.shuffle(li);
 		ns1 = System.nanoTime();
-		for (Integer i : li) {
-			r.getRank(i);
+		for (int i = 0; i < times; i++) {
+			r.getRank(random.nextInt(num));
 		}
 		ns2 = System.nanoTime();
-		System.out.println("rank:" + (ns2 - ns1) / num);
+		System.out.println("rank:" + (ns2 - ns1) / times);
 		// 顺次
-		Collections.shuffle(li);
 		ns1 = System.nanoTime();
-		for (int i = 1; i < r.size(); i++) {
-			r.getKth(i);
+		for (int i = 0; i < times; i++) {
+			r.getKth(random.nextInt(num));
 		}
 		ns2 = System.nanoTime();
-		System.out.println("kth:" + (ns2 - ns1) / num);
+		System.out.println("kth:" + (ns2 - ns1) / times);
 		// 删除
-		Collections.shuffle(li);
 		ns1 = System.nanoTime();
-		for (Integer i : li) {
-			r.remove(i);
+		for (int i = 0; i < times; i++) {
+			r.remove(random.nextInt(num));
 		}
 		ns2 = System.nanoTime();
-		System.out.println("delete:" + (ns2 - ns1) / num);
+		System.out.println("delete:" + (ns2 - ns1) / times);
 	}
 }

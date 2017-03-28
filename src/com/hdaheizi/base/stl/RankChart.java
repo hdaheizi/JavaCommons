@@ -1,21 +1,19 @@
 package com.hdaheizi.base.stl;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * 底层为IRank支持的带有索引的排行榜
- * 通过对相等的数据附加不同orderId并封装成UniqueValue，
+ * 通过对相等数据附加不同orderId封装成UnequalValue，
  * 以保证存入IRank内的数据互不相等
- * 线程安全
+ * 因此更加适用于可能存入大量相等的数据于排行榜内时
+ * 非线程安全
  * @param <K>
  * @param <V>
  * @author daheiz
@@ -24,10 +22,10 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class RankChart<K, V> implements IChart<K, V> {
 
 	/** 内部排行榜 */
-	private IRank<UniqueValue> rank;
+	private IRank<UnequalValue> rank;
 
-	/** 存储<k, UniqueValue> 的map */
-	private Map<K, UniqueValue> map;
+	/** 存储<k, UnequalValue> 的map */
+	private Map<K, UnequalValue> map;
 
 	/** 比较器 */
 	private Comparator<? super V> comparator;
@@ -35,12 +33,6 @@ public class RankChart<K, V> implements IChart<K, V> {
 	/** 顺序id的最值 */
 	private static final int MIN_ORDER_ID = 1 << 31;
 	private static final int MAX_ORDER_ID = ~ (1 << 31);
-
-	/** 读写锁 */
-	private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
-	private final Lock rl = lock.readLock();
-	private final Lock wl = lock.writeLock();
-
 
 	/**
 	 * 构造函数
@@ -73,12 +65,13 @@ public class RankChart<K, V> implements IChart<K, V> {
 
 
 	/**
-	 * 唯一值类，为每个对象赋予一个唯一id，保证所有实例不相等，
-	 * 且对于真值相等的对象，具有生成时间上的排序稳定性
+	 * 不等值类，为具有相等value值的对象赋予一个不等的id，
+	 * 保证存入排行榜IRank内的实例互不相等，
+	 * 且对于value值相等的对象，具有相对生成时间的排序稳定性
 	 * @author daheiz
 	 * @Date 2017年3月14日 下午11:03:59
 	 */
-	final class UniqueValue implements Comparable<UniqueValue> {
+	final class UnequalValue implements Comparable<UnequalValue> {
 		/** 关键字 */
 		K key;
 		/** 真值 */
@@ -91,7 +84,7 @@ public class RankChart<K, V> implements IChart<K, V> {
 		 * @param key
 		 * @param value
 		 */
-		UniqueValue(K key, V value) {
+		UnequalValue(K key, V value) {
 			this(key, value, MIN_ORDER_ID);
 		}
 
@@ -101,7 +94,7 @@ public class RankChart<K, V> implements IChart<K, V> {
 		 * @param value
 		 * @param orderId
 		 */
-		public UniqueValue(K key, V value, int orderId) {
+		public UnequalValue(K key, V value, int orderId) {
 			this.key = key;
 			this.value = value;
 			this.orderId = orderId;
@@ -111,7 +104,7 @@ public class RankChart<K, V> implements IChart<K, V> {
 		 * @see java.lang.Comparable#compareTo(java.lang.Object)
 		 */
 		@Override
-		public int compareTo(UniqueValue o) {
+		public int compareTo(UnequalValue o) {
 			int vcmp = compare(value, o.value);
 			if (vcmp == 0) {
 				if (orderId == o.orderId) {
@@ -131,53 +124,48 @@ public class RankChart<K, V> implements IChart<K, V> {
 		if (key == null) {
 			throw new NullPointerException();
 		}
-		wl.lock();
-		try {
-			V preValue = null;
-			UniqueValue uniValue = map.get(key);
-			if (uniValue != null) {
-				// 存在原记录
-				preValue = uniValue.value;
-				if (compare(value, uniValue.value) == 0) {
-					// 原记录与新纪录相等，只需要替换value值
-					uniValue.value = value;
-					return preValue;
-				} else {
-					// 原记录与新纪录不等，移除原记录
-					rank.remove(uniValue);
-					uniValue.value = value;
-				}
+		V preValue = null;
+		UnequalValue uneValue = map.get(key);
+		if (uneValue != null) {
+			// 存在原记录
+			preValue = uneValue.value;
+			if (compare(value, uneValue.value) == 0) {
+				// 原记录与新纪录相等，只需要替换value值
+				uneValue.value = value;
+				return preValue;
 			} else {
-				// 不存在原记录
-				uniValue = new UniqueValue(key, value);
-				map.put(key, uniValue);
+				// 原记录与新纪录不等，移除原记录
+				rank.remove(uneValue);
+				uneValue.value = value;
 			}
-			// 设置合适的orderId，以保证排行榜内不存在相等的uniValue
-			// 这里存在一些冗余的查询可能会影响效率
-			uniValue.orderId = MAX_ORDER_ID;
-			int lastPos = rank.getRank(uniValue);
-			uniValue.orderId = MIN_ORDER_ID;
-			if (lastPos > 0) {
-				// orderId已达上限，需要重新按序调整
-				int firstPos = rank.getRank(uniValue);
-				RankIterator<UniqueValue> it = rank.rankIterator(Math.abs(firstPos) - 1);
-				int newOrderId = MIN_ORDER_ID;
-				while (it.nextRank() <= lastPos) {
-					it.next().orderId = newOrderId++;
-				}
-				uniValue.orderId = newOrderId;
-			} else if (lastPos < -1) {
-				// 将orderId设置为现有与value值相等的所有数据中(最大的orderId) + 1
-				UniqueValue preUniValue = rank.getKth(-lastPos - 1);
-				if (compare(preUniValue.value, value) == 0) {
-					uniValue.orderId = preUniValue.orderId + 1;
-				}
-			}
-			rank.add(uniValue);
-			return preValue;
-		} finally {
-			wl.unlock();
+		} else {
+			// 不存在原记录
+			uneValue = new UnequalValue(key, value);
+			map.put(key, uneValue);
 		}
+		// 设置合适的orderId，以保证排行榜内不存在相等的uneValue
+		// 这里存在一些冗余的查询可能会影响效率
+		uneValue.orderId = MAX_ORDER_ID;
+		int lastPos = rank.getRank(uneValue);
+		uneValue.orderId = MIN_ORDER_ID;
+		if (lastPos > 0) {
+			// orderId已达上限，需要重新按序调整
+			int firstPos = rank.getRank(uneValue);
+			RankIterator<UnequalValue> it = rank.rankIterator(Math.abs(firstPos) - 1);
+			int newOrderId = MIN_ORDER_ID;
+			while (it.nextRank() <= lastPos) {
+				it.next().orderId = newOrderId++;
+			}
+			uneValue.orderId = newOrderId;
+		} else if (lastPos < -1) {
+			// 将orderId设置为现有与value值相等的所有数据中(最大的orderId) + 1
+			UnequalValue preUniValue = rank.getKth(-lastPos - 1);
+			if (compare(preUniValue.value, value) == 0) {
+				uneValue.orderId = preUniValue.orderId + 1;
+			}
+		}
+		rank.add(uneValue);
+		return preValue;
 	}
 
 	/**
@@ -185,17 +173,12 @@ public class RankChart<K, V> implements IChart<K, V> {
 	 */
 	@Override
 	public V remove(K key) {
-		wl.lock();
-		try {
-			UniqueValue uniValue = map.remove(key);
-			if (uniValue != null) {
-				rank.remove(uniValue);
-				return uniValue.value;
-			}
-			return null;
-		} finally {
-			wl.unlock();
+		UnequalValue uneValue = map.remove(key);
+		if (uneValue != null) {
+			rank.remove(uneValue);
+			return uneValue.value;
 		}
+		return null;
 	}
 
 	/**
@@ -203,31 +186,17 @@ public class RankChart<K, V> implements IChart<K, V> {
 	 */
 	@Override
 	public V get(K key) {
-		rl.lock();
-		try {
-			UniqueValue uniValue = map.get(key);
-			return uniValue == null ? null : uniValue.value;
-		} finally {
-			rl.unlock();
-		}
+		UnequalValue uneValue = map.get(key);
+		return uneValue == null ? null : uneValue.value;
 	}
 
 	/**
-	 * @see com.hdaheizi.base.stl.IChart#search(java.lang.Object)
+	 * @see com.hdaheizi.base.stl.IChart#getRank(java.lang.Object)
 	 */
 	@Override
-	public Tuple<Integer, V> search(K key) {
-		rl.lock();
-		try {
-			UniqueValue uniValue = map.get(key);
-			if (uniValue == null) {
-				return new Tuple<>(-1, null);
-			}
-			int r = rank.getRank(uniValue);
-			return new Tuple<>(r, uniValue.value);
-		} finally {
-			rl.unlock();
-		}
+	public int getRank(K key) {
+		UnequalValue uneValue = map.get(key);
+		return uneValue == null ? -1 : rank.getRank(uneValue);
 	}
 
 	/**
@@ -235,37 +204,93 @@ public class RankChart<K, V> implements IChart<K, V> {
 	 */
 	@Override
 	public Tuple<K, V> getKth(int kth) {
-		rl.lock();
-		try {
-			if (kth > 0 && kth <= size()) {
-				UniqueValue uniValue = rank.getKth(kth);
-				return new Tuple<>(uniValue.key, uniValue.value);
+		if (kth > 0 && kth <= size()) {
+			UnequalValue uneValue = rank.getKth(kth);
+			return new Tuple<>(uneValue.key, uneValue.value);
+		}
+		return null;
+	}
+
+	/**
+	 * @see com.hdaheizi.base.stl.IChart#getRankInfo(java.lang.Object)
+	 */
+	@Override
+	public int[] getRankInfo(V value) {
+		int[] info = new int[2];
+		UnequalValue testValue = new UnequalValue(null, value, MIN_ORDER_ID);
+		int start = rank.getRank(testValue);
+		info[0] = start > 0 ? start - 1 : -start - 1;
+		testValue.orderId = MAX_ORDER_ID;
+		int end = rank.getRank(testValue);
+		info[1] = end > 0 ? end : -end - 1;
+		return info;
+	}
+
+	/**
+	 * 排行榜数据迭代器
+	 * @author daheiz
+	 * @Date 2017年3月28日 下午6:08:46
+	 */
+	private class Itr implements Iterator<Tuple<K, V>> {
+
+		/** 内部排行榜迭代器 */
+		private RankIterator<UnequalValue> rankItr;
+
+		/** 前一个UniValue */
+		private UnequalValue lastValue;
+
+		/**
+		 * 构造函数
+		 * @param kth
+		 */
+		Itr(int kth) {
+			this.rankItr = rank.rankIterator(kth);
+		}
+
+		/**
+		 * @see java.util.Iterator#hasNext()
+		 */
+		@Override
+		public boolean hasNext() {
+			return rankItr.hasNext();
+		}
+
+		/**
+		 * @see java.util.Iterator#next()
+		 */
+		@Override
+		public Tuple<K, V> next() {
+			lastValue = rankItr.next();
+			return new Tuple<>(lastValue.key, lastValue.value);
+		}
+
+		/**
+		 * @see java.util.Iterator#remove()
+		 */
+		@Override
+		public void remove() {
+			rankItr.remove();
+			if (lastValue != null) {
+				map.remove(lastValue.key);
+				lastValue = null;
 			}
-			return null;
-		} finally {
-			rl.unlock();
 		}
 	}
 
 	/**
-	 * @see com.hdaheizi.base.stl.IChart#getSequenceList(int, int)
+	 * @see com.hdaheizi.base.stl.IChart#iterator()
 	 */
 	@Override
-	public List<Tuple<K, V>> getSequenceList(int start, int end) {
-		rl.lock();
-		try {
-			List<Tuple<K, V>> list = new ArrayList<>();
-			int size = size();
-			start = start < 0 ? 0 : (start > size ? size : start);
-			RankIterator<UniqueValue> it = rank.rankIterator(start);
-			while (it.hasNext() && it.nextRank() <= end) {
-				UniqueValue univ = it.next();
-				list.add(new Tuple<>(univ.key, univ.value));
-			}
-			return list;
-		} finally {
-			rl.unlock();
-		}
+	public Iterator<Tuple<K, V>> iterator() {
+		return iterator(0);
+	}
+
+	/**
+	 * @see com.hdaheizi.base.stl.IChart#iterator(int)
+	 */
+	@Override
+	public Iterator<Tuple<K, V>> iterator(int kth) {
+		return new Itr(kth);
 	}
 
 	/**
@@ -273,16 +298,11 @@ public class RankChart<K, V> implements IChart<K, V> {
 	 */
 	@Override
 	public List<Tuple<K, V>> getRangeList(V low, V high) {
-		rl.lock();
-		try {
-			int start = rank.getRank(new UniqueValue(null, low, MIN_ORDER_ID));
-			start = start > 0 ? start - 1 : -start - 1;
-			int end = rank.getRank(new UniqueValue(null, high, MAX_ORDER_ID));
-			end = end > 0 ? end : -end - 1;
-			return getSequenceList(start, end);
-		} finally {
-			rl.unlock();
-		}
+		int start = rank.getRank(new UnequalValue(null, low, MIN_ORDER_ID));
+		start = start > 0 ? start : -start;
+		int end = rank.getRank(new UnequalValue(null, high, MAX_ORDER_ID));
+		end = end > 0 ? end : -end - 1;
+		return getSequenceList(start, end);
 	}
 
 	/**
@@ -290,12 +310,7 @@ public class RankChart<K, V> implements IChart<K, V> {
 	 */
 	@Override
 	public boolean containsKey(K key) {
-		rl.lock();
-		try {
-			return map.containsKey(key);
-		} finally {
-			rl.unlock();
-		}
+		return map.containsKey(key);
 	}
 
 	/**
@@ -303,12 +318,7 @@ public class RankChart<K, V> implements IChart<K, V> {
 	 */
 	@Override
 	public int size() {
-		rl.lock();
-		try {
-			return map.size();
-		} finally {
-			rl.unlock();
-		}
+		return map.size();
 	}
 
 	/**
@@ -316,15 +326,9 @@ public class RankChart<K, V> implements IChart<K, V> {
 	 */
 	@Override
 	public void clear() {
-		wl.lock();
-		try {
-			map.clear();
-			rank.clear();
-		} finally {
-			wl.unlock();
-		}
+		map.clear();
+		rank.clear();
 	}
-
 
 	/**
 	 * 单元测试
@@ -349,206 +353,81 @@ public class RankChart<K, V> implements IChart<K, V> {
 		System.out.println(r2.put(1, new Tuple<>(8, 5)));
 		System.out.println(r2.put(2, new Tuple<>(10, 80)));
 		System.out.println(r2.put(3, new Tuple<>(300, 0)));
-		System.out.println(r2.put(50, new Tuple<>(50, 51)));
+		System.out.println(r2.put(50, new Tuple<>(50, 90)));
+		System.out.println(r2.put(60, new Tuple<>(50, 90)));
+		System.out.println(r2.put(150, new Tuple<>(20, 90)));
 		System.out.println(r2.put(3, new Tuple<>(10, 90)));
 		System.out.println(Arrays.toString(r2.getSequenceList(-3, 6).toArray()));
-
-		IChart<Integer, Integer> r = new RankChart<>();
-		r.put(1, 30);
-		r.put(2, 40);
-		r.put(3, 30);
-		r.put(2, 40);
-		r.put(2, 15);
-		for (int id = 4; id < 30; id++) {
-			r.put(id, id * 10);
+		System.out.println(r2.remove(2));
+		System.out.println(r2.remove(16));
+		Iterator<Tuple<Integer, Tuple<Integer, Integer>>> it = r2.iterator(15);
+		while (it.hasNext()) {
+			Tuple<Integer, Tuple<Integer, Integer>> e = it.next();
+			if (e.left >= 15 && e.left < 98) {
+				it.remove();
+			}
+		}
+		System.out.println(r2.remove(99));
+		System.out.println(r2.getKth(0));
+		System.out.println(r2.getKth(1));
+		System.out.println(r2.getKth(2));
+		System.out.println(r2.getKth(3));
+		System.out.println(r2.getKth(15));
+		System.out.println(r2.getKth(30));
+		System.out.println(r2.size());
+		System.out.println(Arrays.toString(r2.getSequenceList(0, 100).toArray()));
+		System.out.println(Arrays.toString(r2.getRangeList(new Tuple<>(80, 0), new Tuple<>(100, 0)).toArray()));
+		for (int i = 5; i < 15; i++) {
+			r2.put(i, new Tuple<>(i, i * 10 - i));
 		}
 
-		System.out.println(Arrays.toString(r.getSequenceList(9, 12).toArray()));
-		System.out.println(Arrays.toString(r.getRangeList(30, 60).toArray()));
+		//		System.exit(0);
 
-		int num = 1000000;
-		Integer[] a = new Integer[num];
-		for (int i = 0; i < num; ++i) {
-			a[i] = i;
-		}
-		List<Integer> li = Arrays.asList(a);
 		// *****测试效率
-		r.clear();
-		System.out.println("****test speed, num :" + li.size() + " ,time unit: (ns)");
+		IChart<Integer, Integer> r = new RankChart<>();
+		int num = 5000000;
+		Random random = new Random();
+		for (int i = 0; i < num; ++i) {
+			r.put(i, random.nextInt(num));
+		}
+		int times = num / 100;
+		System.out.println("****test speed, num :" + num + " ,time unit: (ns)");
+
 		long ns1, ns2;
 		// 插入
-		Collections.shuffle(li);
 		ns1 = System.nanoTime();
-		for (Integer i : li) {
-			r.put(i, i / 10);
+		for (int i = 0; i < times; i++) {
+			int x = random.nextInt(num);
+			int y = random.nextInt(num) / 100;
+			r.put(x, y);
 		}
 		ns2 = System.nanoTime();
-		System.out.println("put: " + (ns2 - ns1) / num);
-
-		Collections.shuffle(li);
-		ns1 = System.nanoTime();
-		for (Integer i : li) {
-			r.put(i, i / 10 + 1);
-		}
-		ns2 = System.nanoTime();
-		System.out.println("put: " + (ns2 - ns1) / num);
+		System.out.println("put: " + (ns2 - ns1) / times);
 
 		// 查找
-		Collections.shuffle(li);
 		ns1 = System.nanoTime();
-		for (Integer i : li) {
-			r.search(i);
+		for (int i = 0; i < times; i++) {
+			r.getRank(random.nextInt(num));
 		}
 		ns2 = System.nanoTime();
-		System.out.println("search: " + (ns2 - ns1) / num);
-		// 顺次
-		Collections.shuffle(li);
+		System.out.println("getRank: " + (ns2 - ns1) / times);
+
+		// 名次
 		ns1 = System.nanoTime();
-		for (int i = 1; i <= num; i++) {
-			r.getSequenceList(i, i);
+		for (int i = 1; i <= times; i++) {
+			r.getKth(random.nextInt(num));
 		}
 		ns2 = System.nanoTime();
-		System.out.println("kth:" + (ns2 - ns1) / num);
+		System.out.println("getKth:" + (ns2 - ns1) / times);
+
 		// 删除
-		Collections.shuffle(li);
 		ns1 = System.nanoTime();
-		for (Integer i : li) {
-			r.remove(i);
+		for (int i = 1; i <= times; i++) {
+			r.remove(random.nextInt(num));
 		}
 		ns2 = System.nanoTime();
-		System.out.println("delete:" + (ns2 - ns1) / num);
+		System.out.println("delete:" + (ns2 - ns1) / times);
 
 		System.exit(0);
-
-		// *****压力测试
-		System.out.println("****test synchronization, num :" + li.size() + " ,time unit: (ns)");
-		// 准备数据
-		r.clear();
-		Collections.shuffle(li);
-		for (Integer i : li) {
-			r.put(i, i);
-		}
-		Random random = new Random();
-		int times = num / 1000;
-		// 添加
-		Thread t1 = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				long ns1, ns2, ns = 0;
-				for (int i = 0; i < times; i++) {
-					int index = random.nextInt(a.length);
-					int x = a[index];
-					ns1 = System.nanoTime();
-					r.put(x, x / 50);
-					ns2 = System.nanoTime();
-					ns += ns2 - ns1;
-				}
-				System.out.println("put1: " + ns / times);
-			}
-		});
-		// 添加
-		Thread t2 = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				long ns1, ns2, ns = 0;
-				for (int i = 0; i < times; i++) {
-					int index = random.nextInt(a.length);
-					int x = a[index];
-					ns1 = System.nanoTime();
-					r.put(x, x + 1);
-					ns2 = System.nanoTime();
-					ns += ns2 - ns1;
-				}
-				System.out.println("put2: " + ns / times);
-			}
-		});
-		// 移除
-		Thread t3 = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				long ns1, ns2, ns = 0;
-				for (int i = 0; i < times; i++) {
-					int index = random.nextInt(a.length);
-					int x = a[index];
-					ns1 = System.nanoTime();
-					r.remove(x);
-					ns2 = System.nanoTime();
-					ns += ns2 - ns1;
-				}
-				System.out.println("remove1: " + ns / times);
-			}
-		});
-		// 移除
-		Thread t4 = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				long ns1, ns2, ns = 0;
-				for (int i = 0; i < times; i++) {
-					int index = random.nextInt(a.length);
-					int x = a[index];
-					ns1 = System.nanoTime();
-					r.remove(x);
-					ns2 = System.nanoTime();
-					ns += ns2 - ns1;
-				}
-				System.out.println("remove2: " + ns / times);
-			}
-		});
-		// 查询
-		Thread t5 = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				long ns1, ns2, ns = 0;
-				for (int i = 0; i < times; i++) {
-					int index = random.nextInt(a.length);
-					int x = a[index];
-					ns1 = System.nanoTime();
-					r.search(x);
-					ns2 = System.nanoTime();
-					ns += ns2 - ns1;
-				}
-				System.out.println("search1: " + ns / times);
-			}
-		});
-		// 查询
-		Thread t6 = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				long ns1, ns2, ns = 0;
-				for (int i = 0; i < times; i++) {
-					int index = random.nextInt(a.length);
-					int x = a[index];
-					ns1 = System.nanoTime();
-					r.search(x);
-					ns2 = System.nanoTime();
-					ns += ns2 - ns1;
-				}
-				System.out.println("search2: " + ns / times);
-			}
-		});
-		// 获取
-		Thread t7 = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				long ns1, ns2, ns = 0;
-				for (int i = 0; i < times; i++) {
-					int index = random.nextInt(a.length);
-					int x = a[index];
-					ns1 = System.nanoTime();
-					r.getSequenceList(x, x + 50);
-					ns2 = System.nanoTime();
-					ns += ns2 - ns1;
-				}
-				System.out.println("sequenece1: " + ns / times);
-			}
-		});
-
-		t1.start();
-		t2.start();
-		t3.start();
-		t4.start();
-		t5.start();
-		t6.start();
-		t7.start();
 	}
 }

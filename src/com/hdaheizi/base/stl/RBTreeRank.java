@@ -7,11 +7,12 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.ConcurrentModificationException;
 import java.util.NoSuchElementException;
+import java.util.Random;
 
 /**
- * 基于红黑树的排行榜
- * 排行榜内不存在相等的关键字
- * 所有涉及到比较关键字大小、相等的方法均依赖于其自然排序或给定的比较器的排序
+ * 基于红黑树的排行榜IRank
+ * 排行榜内关键字互不相等
+ * 非线程安全
  * @author daheiz
  * @Date 2017年3月3日 下午5:35:04
  */
@@ -31,12 +32,12 @@ public class RBTreeRank<K> implements IRank<K> {
 	private transient int modCount = 0;
 
 	/**
-	 * 节点类
+	 * 红黑树节点类
 	 * @param <K>
 	 * @author daheiz
 	 * @Date 2017年3月10日 下午11:37:11
 	 */
-	static final class Node<K> {
+	private static final class Node<K> {
 		/** 关键字 */
 		K key;
 		/** 父节点 */
@@ -106,7 +107,7 @@ public class RBTreeRank<K> implements IRank<K> {
 
 	/**
 	 * 构造函数
-	 * 使用关键字的自然排序，需要 K implements Comparable<K>
+	 * 使用关键字自身的排序规则，需要 K implements Comparable<K>
 	 */
 	public RBTreeRank() {
 		this(null);
@@ -114,7 +115,7 @@ public class RBTreeRank<K> implements IRank<K> {
 
 	/**
 	 * 构造函数
-	 * 使用给定的比较器
+	 * 使用给定比较器的排序规则
 	 * @param comparator
 	 */
 	public RBTreeRank(Comparator<K> comparator) {
@@ -334,8 +335,8 @@ public class RBTreeRank<K> implements IRank<K> {
 	}
 
 	/**
-	 * 添加关键字
-	 * 如果已经包含相等的关键字，则添加失败
+	 * 向排行榜内添加关键字
+	 * 若已存在相等的关键字，则添加失败
 	 * @param key
 	 * @return 是否添加成功
 	 * @throws NullPointerException 不接受参数key为null
@@ -462,7 +463,7 @@ public class RBTreeRank<K> implements IRank<K> {
 	/**
 	 * 移除与给定关键字相等的关键字
 	 * @param key
-	 * @return 是否成功移除
+	 * @return 是否找到并移除
 	 * @throws NullPointerException 不接受参数key为null
 	 * @Date 2017年3月11日 上午12:27:21
 	 * @see com.hdaheizi.base.stl.IRank#remove(java.lang.Object)
@@ -652,8 +653,8 @@ public class RBTreeRank<K> implements IRank<K> {
 			} else if (kth <= ls) {
 				p = p.left;
 			} else {
-				p = p.right;
 				kth -= ls + 1;
+				p = p.right;
 			}
 		}
 		return p;
@@ -663,12 +664,17 @@ public class RBTreeRank<K> implements IRank<K> {
 	 * 返回给定关键字的名次
 	 * @param key
 	 * @return 如果包含该关键字，则返回一个正数，即当前名次
-	 *         如果不包含该关键字，则返回一个负数，其绝对值为插入该关键字后的名次
+	 *         如果不包含该关键字，则返回一个负数，
+	 *         其绝对值为插入该关键字后的名次
+	 * @throws NullPointerException 不接受参数key为null
 	 * @Date 2017年3月11日 上午12:37:05
 	 * @see com.hdaheizi.base.stl.IRank#getRank(java.lang.Object)
 	 */
 	@Override
 	public int getRank(K key) {
+		if (key == null) {
+			throw new NullPointerException();
+		}
 		int rank = 1, cmp;
 		Node<K> p = root;
 		while (p != null) {
@@ -861,10 +867,10 @@ public class RBTreeRank<K> implements IRank<K> {
 	}
 
 	/**
-	 * 返回一个迭代器
+	 * 返回一个有序的关键字迭代器
 	 * @return
 	 * @Date 2017年3月11日 下午5:13:25
-	 * @see java.lang.Iterable#iterator()
+	 * @see com.hdaheizi.base.stl.IRank#iterator()
 	 */
 	@Override
 	public Iterator<K> iterator() {
@@ -968,108 +974,6 @@ public class RBTreeRank<K> implements IRank<K> {
 
 
 	/****************** 以下为一些非必需的辅助和测试方法 ***************************/
-
-	/**
-	 * 单元测试
-	 * @param args
-	 * @Date 2017年3月11日 下午5:07:33
-	 */
-	public static void main(String[] args) {
-		RBTreeRank<Integer> r = new RBTreeRank<>();
-		int num = 2000000;
-		Integer[] a = new Integer[num];
-		for (int i = 0; i < num; ++i) {
-			a[i] = i;
-		}
-		List<Integer> li = Arrays.asList(a);
-		List<Integer> li2 = li.subList(1, 31);
-
-		// *****测试正确性
-		System.out.println("****test correctness, num :" + li2.size());
-		Collections.shuffle(li2);
-		for (Integer i : li2) {
-			r.add(i);
-			// 检查结构是否被破坏
-			r.check();
-		}
-		System.out.println(r.outputTree());
-		System.out.println(Arrays.toString(r.toArray()));
-
-		RankIterator<Integer> it = r.rankIterator();
-		while (it.hasNext()) {
-			Integer x = it.next();
-			if (x == 24) {
-				it.remove();
-				it.previous();
-				it.remove();
-			}
-		}
-		System.out.println("the 23th is : " + r.getKth(23));
-		r.add(8);
-		r.add(9);
-		System.out.println(r.outputTree());
-		System.out.println(Arrays.toString(r.toArray()));
-
-
-		System.out.println("23 is at the rank: " + r.getRank(23));
-		System.out.println("25 is at the rank: " + r.getRank(25));
-		System.out.println("0 is at the rank: " + r.getRank(0));
-		System.out.println("100 is at the rank: " + r.getRank(100));
-
-		Collections.shuffle(li2);
-		for (Integer i : li2) {
-			r.remove(i);
-			// 检查结构是否被破坏
-			r.check();
-		}
-
-		// *****测试效率
-		r.clear();
-		System.out.println("****test speed, num :" + li.size() + " ,time unit: (ns)");
-		long ns1, ns2;
-		// 插入
-		Collections.shuffle(li);
-		ns1 = System.nanoTime();
-		for (Integer i : li) {
-			r.add(i);
-		}
-		ns2 = System.nanoTime();
-		System.out.println("height: " + r.getHeight());
-		System.out.println("black height: " + r.getBlackHeight());
-		System.out.println("add: " + (ns2 - ns1) / num);
-		// 查找
-		Collections.shuffle(li);
-		ns1 = System.nanoTime();
-		for (Integer i : li) {
-			r.contains(i);
-		}
-		ns2 = System.nanoTime();
-		System.out.println("contains: " + (ns2 - ns1) / num);
-		// 名次
-		Collections.shuffle(li);
-		ns1 = System.nanoTime();
-		for (Integer i : li) {
-			r.getRank(i);
-		}
-		ns2 = System.nanoTime();
-		System.out.println("rank:" + (ns2 - ns1) / num);
-		// 顺次
-		Collections.shuffle(li);
-		ns1 = System.nanoTime();
-		for (int i = 1; i < r.size(); i++) {
-			r.getKth(i);
-		}
-		ns2 = System.nanoTime();
-		System.out.println("kth:" + (ns2 - ns1) / num);
-		// 删除
-		Collections.shuffle(li);
-		ns1 = System.nanoTime();
-		for (Integer i : li) {
-			r.remove(i);
-		}
-		ns2 = System.nanoTime();
-		System.out.println("delete:" + (ns2 - ns1) / num);
-	}
 
 	/**
 	 * 生成红黑树的内部结构字符串
@@ -1231,5 +1135,108 @@ public class RBTreeRank<K> implements IRank<K> {
 			p = p.right;
 		}
 		return bh;
+	}
+
+	/**
+	 * 单元测试
+	 * @param args
+	 * @Date 2017年3月11日 下午5:07:33
+	 */
+	public static void main(String[] args) {
+		RBTreeRank<Integer> r = new RBTreeRank<>();
+		int num = 1000000;
+		Integer[] a = new Integer[num];
+		for (int i = 0; i < num; ++i) {
+			a[i] = i;
+		}
+		List<Integer> li = Arrays.asList(a);
+		List<Integer> li2 = li.subList(1, 31);
+
+		// *****测试正确性
+		System.out.println("****test correctness, num :" + li2.size());
+		Collections.shuffle(li2);
+		for (Integer i : li2) {
+			r.add(i);
+			// 检查结构是否被破坏
+			r.check();
+		}
+		System.out.println(r.outputTree());
+		System.out.println(Arrays.toString(r.toArray()));
+		System.out.println(r.getHeight());
+		System.out.println(r.getBlackHeight());
+
+		RankIterator<Integer> it = r.rankIterator();
+		while (it.hasNext()) {
+			Integer x = it.next();
+			if (x == 24) {
+				it.remove();
+				it.previous();
+				it.remove();
+			}
+		}
+		System.out.println("the 23th is : " + r.getKth(23));
+		r.add(8);
+		r.add(9);
+		System.out.println(r.outputTree());
+		System.out.println(Arrays.toString(r.toArray()));
+
+
+		System.out.println("23 is at the rank: " + r.getRank(23));
+		System.out.println("25 is at the rank: " + r.getRank(25));
+		System.out.println("0 is at the rank: " + r.getRank(0));
+		System.out.println("100 is at the rank: " + r.getRank(100));
+
+		Collections.shuffle(li2);
+		for (Integer i : li2) {
+			r.remove(i);
+			// 检查结构是否被破坏
+			r.check();
+		}
+
+		// *****测试效率
+		// 准备数据
+		Collections.shuffle(li);
+		for (Integer i : li) {
+			r.add(i);
+		}
+		int times = num / 1000;
+		Random random = new Random();
+		System.out.println("****test speed, num :" + li.size() + " ,time unit: (ns)");
+		long ns1, ns2;
+		// 插入
+		ns1 = System.nanoTime();
+		for (int i = 0; i < times; i++) {
+			r.add(random.nextInt(num * 2));
+		}
+		ns2 = System.nanoTime();
+		System.out.println("add: " + (ns2 - ns1) / times);
+		// 查找
+		ns1 = System.nanoTime();
+		for (int i = 0; i < times; i++) {
+			r.contains(random.nextInt(num * 2));
+		}
+		ns2 = System.nanoTime();
+		System.out.println("contains: " + (ns2 - ns1) / times);
+		// 名次
+		ns1 = System.nanoTime();
+		for (int i = 0; i < times; i++) {
+			r.getRank(random.nextInt(num));
+		}
+		ns2 = System.nanoTime();
+		System.out.println("rank:" + (ns2 - ns1) / times);
+		// 顺次
+		ns1 = System.nanoTime();
+		for (int i = 0; i < times; i++) {
+			r.getKth(random.nextInt(num));
+		}
+		ns2 = System.nanoTime();
+		System.out.println("kth:" + (ns2 - ns1) / times);
+		// 删除
+		ns1 = System.nanoTime();
+		for (int i = 0; i < times; i++) {
+			r.remove(random.nextInt(num));
+		}
+		ns2 = System.nanoTime();
+		System.out.println("delete:" + (ns2 - ns1) / times);
 	}
 }

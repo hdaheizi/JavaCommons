@@ -139,7 +139,7 @@ public abstract class AbstractListRank<K> implements IRank<K> {
 	}
 
 	/**
-	 * @see java.lang.Iterable#iterator()
+	 * @see com.hdaheizi.base.stl.IRank#iterator()
 	 */
 	@Override
 	public Iterator<K> iterator() {

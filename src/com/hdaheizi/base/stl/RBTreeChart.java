@@ -1,19 +1,19 @@
 package com.hdaheizi.base.stl;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Random;
 
 /**
- * 基于红黑树的排行榜
- * 所有涉及到比较值大小、相等的方法均依赖于其自然排序或给定的比较器的排序
+ * 基于红黑树的带索引的排行榜IChart
+ * 对于相等的数据通过双向循环链表的形式存储与于红黑树的同一节点
+ * 因此当排行榜内存在大量相等数据时，查找效率会有所下降
+ * 非线程安全
  * @author daheiz
  * @Date 2017年3月3日 下午5:35:04
  */
@@ -29,15 +29,14 @@ public class RBTreeChart<K, V> implements IChart<K, V> {
 	/** 比较器 */
 	private final Comparator<? super V> comparator;
 
-	/** 树结构修改的次数 */
+	/** 树结构的修改次数 */
 	private transient int modCount = 0;
 
-	/** 关键字key与所属节点映射表 */
+	/** 关键字key与所在红黑树节点的映射表 */
 	private Map<K, Node<K, V>> nodeMap;
 
-
 	/**
-	 * 节点类
+	 * 红黑树节点类
 	 * @param <K, V>
 	 * @author daheiz
 	 * @Date 2017年3月10日 下午11:37:11
@@ -55,7 +54,7 @@ public class RBTreeChart<K, V> implements IChart<K, V> {
 		int size;
 		/** 存储相等数据的双循环链表的头指针 */
 		Entry<K, V> first;
-		/** 内部包含相等数据的数量 */
+		/** 链表中包含的数据量 */
 		int amount;
 
 		/**
@@ -83,8 +82,34 @@ public class RBTreeChart<K, V> implements IChart<K, V> {
 			}
 		}
 
+		/**
+		 * 查询关键字key所在的Entry
+		 * @param key
+		 * @return
+		 * @Date 2017年3月29日 上午12:58:44
+		 */
+		Entry<K, V> getEntry(K key) {
+			if (first != null) {
+				Entry<K, V> e = first;
+				do {
+					// 考虑到局部性原理，所以反向查找，后同
+					e = e.prev;
+					if (objEquals(e.key, key)) {
+						return e;
+					}
+				} while (e != first);
+			}
+			return null;
+		}
+
+		/**
+		 * 末尾添加Entry
+		 * @param e
+		 * @Date 2017年3月29日 上午12:58:01
+		 */
 		void addEntry(Entry<K, V> e) {
 			if (first == null) {
+				// 首个添加的Entry
 				e.prev = e.next = first = e;
 			} else {
 				e.next = first;
@@ -95,11 +120,18 @@ public class RBTreeChart<K, V> implements IChart<K, V> {
 			amount++;
 		}
 
+		/**
+		 * 移除Entry
+		 * @param e
+		 * @Date 2017年3月29日 上午1:00:52
+		 */
 		void removeEntry(Entry<K, V> e) {
 			if (e.prev == e) {
+				// 仅剩一个Entry
 				first = null;
 			} else {
 				if (e == first) {
+					// 移除的是表头Entry
 					first = e.next;
 				}
 				e.prev.next = e.next;
@@ -108,59 +140,48 @@ public class RBTreeChart<K, V> implements IChart<K, V> {
 			amount--;
 		}
 
-		Entry<K, V> getEntry(K key) {
-			if (first != null) {
-				Entry<K, V> e = first;
-				do {
-					if (objEquals(e.key, key)) {
-						return e;
-					}
-					e = e.next;
-				} while (e != first);
-			}
-			return null;
-		}
-
-		Tuple<Integer, V> search(K key) {
-			int rank = 1;
-			if (first != null) {
-				Entry<K, V> e = first;
-				do {
-					if (objEquals(e.key, key)) {
-						return new Tuple<>(rank, e.value);
-					}
-					e = e.next;
-					rank++;
-				} while (e != first);
-			}
-			return new Tuple<>(-1, null);
-		}
-		
+		/**
+		 * 返回关键字在该节点中的名次
+		 * 不存在则返回 -1
+		 * @param key
+		 * @return
+		 * @Date 2017年3月29日 上午1:01:21
+		 */
 		int getRank(K key) {
-			int rank = 1;
+			int rank = amount;
 			if (first != null) {
 				Entry<K, V> e = first;
 				do {
+					e = e.prev;
 					if (objEquals(e.key, key)) {
 						return rank;
 					}
-					e = e.next;
-					rank++;
+					rank--;
 				} while (e != first);
 			}
 			return -1;
 		}
 
+		/**
+		 * 查询该节点中第kth个Entry
+		 * kth越界则返回null
+		 * @param kth
+		 * @return
+		 * @Date 2017年3月29日 上午1:02:01
+		 */
 		Entry<K, V> getKth(int kth) {
 			if (kth <= 0 || kth > amount) {
+				// 越界
 				return null;
 			} else if (kth > amount >>> 1) {
+				// kth > amount/2 逆向查找
 				for (Entry<K, V> e = first.prev; ; e = e.prev) {
 					if (kth++ == amount) {
 						return e;
 					}
 				}
 			} else {
+				// kth <= amount/2 正向查找
 				for (Entry<K, V> e = first; ; e = e.next) {
 					if (--kth == 0) {
 						return e;
@@ -196,14 +217,14 @@ public class RBTreeChart<K, V> implements IChart<K, V> {
 	 * @author daheiz
 	 * @Date 2017年3月20日 下午7:50:22
 	 */
-	static final class Entry<K, V> {
+	private static final class Entry<K, V> {
 		/** 键 */
 		K key;
 		/** 值 */
 		V value;
-		/** 位于同一个Node的前一个entry，第一个entry的prev指向最后一个 */
+		/** 前一个entry，第一个entry的prev指向最后一个 */
 		Entry<K, V> prev;
-		/** 位于同一个Node的后一个entry，最后一个entry的next指向第一个*/
+		/** 后一个entry，最后一个entry的next指向第一个*/
 		Entry<K, V> next;
 
 		/**
@@ -214,6 +235,15 @@ public class RBTreeChart<K, V> implements IChart<K, V> {
 		Entry(K key, V value) {
 			this.key = key;
 			this.value = value;
+		}
+
+		/**
+		 * 生成Tuple类型数据结构
+		 * @return
+		 * @Date 2017年3月23日 下午7:17:38
+		 */
+		Tuple<K, V> tuple() {
+			return new Tuple<>(key, value);
 		}
 
 		/**
@@ -243,20 +273,11 @@ public class RBTreeChart<K, V> implements IChart<K, V> {
 		public String toString() {
 			return key + "=" + value;
 		}
-
-		/**
-		 * 生成Tuple结构的数据
-		 * @return
-		 * @Date 2017年3月23日 下午7:17:38
-		 */
-		Tuple<K, V> tuple() {
-			return new Tuple<>(key, value);
-		}
 	}
 
 	/**
 	 * 构造函数
-	 * 使用值的自然排序，需要 V implements Comparable<K, V>
+	 * 使用值的自身排序规则，需要 V implements Comparable<K, V>
 	 */
 	public RBTreeChart() {
 		this(null);
@@ -264,7 +285,7 @@ public class RBTreeChart<K, V> implements IChart<K, V> {
 
 	/**
 	 * 构造函数
-	 * 使用给定的比较器
+	 * 使用给定比较器的排序规则
 	 * @param comparator
 	 */
 	public RBTreeChart(Comparator<V> comparator) {
@@ -297,30 +318,9 @@ public class RBTreeChart<K, V> implements IChart<K, V> {
 	}
 
 	/**
-	 * 查找值与value相等的节点
-	 * @param value
-	 * @return 未找到时返回null
-	 * @throws NullPointerException 不接受参数value为null
-	 * @Date 2017年3月10日 下午11:47:08
+	 * @see com.hdaheizi.base.stl.IChart#getRank(java.lang.Object)
 	 */
-	public Tuple<Integer, V> search(K key) {
-		Node<K, V> node = nodeMap.get(key);
-		if (node == null) {
-			return new Tuple<>(-1, null);
-		}
-		Node<K, V> p = node;
-		Tuple<Integer, V> result = node.search(key);
-		int extraNum = sizeOf(p.left);
-		while (p != root) {
-			if (p == p.parent.right) {
-				extraNum += sizeOf(p.parent.left) + p.parent.amount;
-			}
-			p = p.parent;
-		}
-		result.left += extraNum;
-		return result;
-	}
-	
+	@Override
 	public int getRank(K key) {
 		Node<K, V> node = nodeMap.get(key);
 		if (node != null) {
@@ -469,12 +469,7 @@ public class RBTreeChart<K, V> implements IChart<K, V> {
 	}
 
 	/**
-	 * 添加值
-	 * 如果已经包含相等的值，则添加失败
-	 * @param value
-	 * @return 是否添加成功
-	 * @throws NullPointerException 不接受参数value为null
-	 * @Date 2017年3月11日 上午12:22:52
+	 * @see com.hdaheizi.base.stl.IChart#put(java.lang.Object, java.lang.Object)
 	 */
 	public V put(K key, V value) {
 		// 结构修改次数 +1
@@ -482,13 +477,16 @@ public class RBTreeChart<K, V> implements IChart<K, V> {
 		V preValue = null;
 		Node<K, V> preNode = nodeMap.get(key);
 		if (preNode != null) {
+			// 存在旧值
 			Entry<K, V> entry = preNode.getEntry(key);
 			preValue = entry.value;
 			if (compare(value, entry.value) == 0) {
+				// 与新值相等，则仅替换，结构不变
 				entry.value = value;
 				modCount--;
 				return preValue;
 			} else {
+				// 与新值不等，则移除后再添加
 				preNode.removeEntry(entry);
 				if (preNode.first == null) {
 					deleteNode(preNode);
@@ -510,8 +508,11 @@ public class RBTreeChart<K, V> implements IChart<K, V> {
 				} else if (cmp > 0) {
 					x = x.right;
 				} else {
+					// 添加到现有节点
 					x.addEntry(newEntry);
+					// 修复x->root路径上所有节点的size属性
 					fixNodeSizeUpward(x);
+					// 注册新的坐标
 					nodeMap.put(key, x);
 					return preValue;
 				}
@@ -527,13 +528,17 @@ public class RBTreeChart<K, V> implements IChart<K, V> {
 				} else if (cmp > 0) {
 					x = x.right;
 				} else {
+					// 添加到现有节点
 					x.addEntry(newEntry);
+					// 修复x->root路径上所有节点的size属性
 					fixNodeSizeUpward(x);
+					// 注册新的坐标
 					nodeMap.put(key, x);
 					return preValue;
 				}
 			}
 		}
+		// 创建新的节点并添加
 		Node<K, V> z = new Node<>(y);
 		z.addEntry(newEntry);
 		if (y == null){
@@ -620,11 +625,7 @@ public class RBTreeChart<K, V> implements IChart<K, V> {
 	}
 
 	/**
-	 * 移除与给定值相等的值
-	 * @param value
-	 * @return 是否成功移除
-	 * @throws NullPointerException 不接受参数value为null
-	 * @Date 2017年3月11日 上午12:27:21
+	 * @see com.hdaheizi.base.stl.IChart#remove(java.lang.Object)
 	 */
 	public V remove(K key) {
 		V preValue = null;
@@ -644,7 +645,7 @@ public class RBTreeChart<K, V> implements IChart<K, V> {
 	}
 
 	/**
-	 * 删除给定节点
+	 * 删除红黑树节点
 	 * @param z
 	 * @Date 2017年3月11日 上午12:30:09
 	 */
@@ -776,212 +777,6 @@ public class RBTreeChart<K, V> implements IChart<K, V> {
 	}
 
 	/**
-	 * 返回排名信息
-	 * @param value
-	 * @return {小于value的数目，等于value的数目}
-	 * @Date 2017年3月24日 下午7:43:16
-	 */
-	private int[] getRankInfo(V value) {
-		int[] info = new int[]{0, 0};
-		int cmp;
-		Node<K, V> p = root;
-		while (p != null) {
-			cmp = compare(value, p.first.value);
-			if (cmp == 0) {
-				info[0] += sizeOf(p.left);
-				info[1] = p.amount;
-				break;
-			} else if (cmp < 0) {
-				p = p.left;
-			} else {
-				info[0] += sizeOf(p.left) + p.amount;
-				p = p.right;
-			}
-		}
-		return info;
-	}
-
-	/**
-	 * 返回对应名次的值
-	 * @param kth
-	 * @return
-	 * @Date 2017年3月11日 下午3:02:32
-	 */
-	public Tuple<K, V> getKth(int kth) {
-		if (kth > 0 && kth <= size()) {
-			return getKthEntry(kth).tuple();
-		}
-		return null;
-	}
-
-	/**
-	 * 返回第k个数据
-	 * @param rank
-	 * @return
-	 * @Date 2017年3月23日 下午7:24:35
-	 */
-	private Entry<K, V> getKthEntry(int kth) {
-		Node<K, V> p = root;
-		int ls;
-		while (p != null) {
-			ls = sizeOf(p.left);
-			if (kth <= ls) {
-				p = p.left;
-			} else if (kth > ls + p.amount) {
-				p = p.right;
-				kth -= ls + p.amount;
-			} else {
-				kth -= ls;
-				return p.getKth(kth);
-			}
-		}
-		return null;
-	}
-
-	/**
-	 * @see com.hdaheizi.base.stl.IChart#get(java.lang.Object)
-	 */
-	@Override
-	public V get(K key) {
-		Node<K, V> node = nodeMap.get(key);
-		return node == null ? null : node.getEntry(key).value;
-	}
-
-	/**
-	 * 是否包含与给定值相等的值
-	 * @param value
-	 * @return
-	 * @throws NullPointerException 不接受参数value为null
-	 * @Date 2017年3月11日 上午12:42:31
-	 */
-	public boolean containsKey(K key) {
-		return nodeMap.containsKey(key);
-	}
-
-	/**
-	 * 返回存储值的数量
-	 * @return
-	 * @Date 2017年3月11日 上午12:45:48
-	 */
-	public int size() {
-		return nodeMap.size();
-	}
-
-	/**
-	 * 判断是否为空
-	 * @return
-	 * @Date 2017年3月11日 上午12:52:14
-	 */
-	public boolean isEmpty() {
-		return size() == 0;
-	}
-
-	/**
-	 * 清空
-	 * @Date 2017年3月11日 上午12:52:51
-	 */
-	public void clear() {
-		modCount++;
-		root = null;
-		nodeMap.clear();
-	}
-
-	/**
-	 * 内部的排行榜迭代器
-	 * @author daheiz
-	 * @Date 2017年3月14日 上午12:56:17
-	 */
-	private class Itr implements Iterator<Entry<K, V>> {
-		/** 下一个node */
-		private Node<K, V> nextNode;
-		/** 下一个entry */
-		private Entry<K, V> nextEntry;
-		/** 上一个entry */
-		private Entry<K, V> lastEntry;
-		/** 期待的被修改次数 */
-		private int expectedModCount;
-
-		/**
-		 * 构造函数
-		 * @param 起始名次
-		 */
-		Itr(int kth) {
-			expectedModCount = modCount;
-			nextEntry = kth == size() ? null : getKthEntry(kth + 1);
-			nextNode = nextEntry == null ? null : nodeMap.get(nextEntry.key);
-		}
-
-		/**
-		 * @see java.util.Iterator#hasNext()
-		 */
-		@Override
-		public final boolean hasNext() {
-			return nextNode != null;
-		}
-
-		/**
-		 * @see java.util.Iterator#next()
-		 */
-		@Override
-		public Entry<K, V> next() {
-			checkForComodification();
-			if (!hasNext()) {
-				throw new NoSuchElementException();
-			}
-			lastEntry = nextEntry;
-			if (nextEntry.next == nextNode.first) {
-				// 当前Node中最后一个entry
-				nextNode = successor(nextNode);
-				nextEntry = nextNode == null ? null : nextNode.first;
-			} else {
-				// 当前Node中的下一个Entry
-				nextEntry = nextEntry.next;
-			}
-			return lastEntry;
-		}
-
-		/**
-		 * @see java.util.Iterator#remove()
-		 */
-		@Override
-		public void remove() {
-			checkForComodification();
-			if (lastEntry == null) {
-				throw new IllegalStateException();
-			}
-			Node<K, V> lastNode = nodeMap.remove(lastEntry.key);
-			lastNode.removeEntry(lastEntry);
-			if (lastNode.first == null) {
-				deleteNode(lastNode);
-			} else {
-				fixNodeSizeUpward(lastNode);
-			}
-			lastEntry = null;
-			expectedModCount = ++modCount;
-		}
-
-		/**
-		 * 检查树结构是否被修改
-		 * @Date 2017年3月14日 上午12:59:20
-		 */
-		private final void checkForComodification() {
-			if (modCount != expectedModCount) {
-				throw new ConcurrentModificationException();
-			}
-		}
-	}
-
-	/**
-	 * 返回一个指定起始名次kth的迭代器Iterator<Entry<K, V>>
-	 * @param kth [0,size]，调用next()时返回的第一个Entry<K, V>的名次为 kth+1  
-	 * @return
-	 * @Date 2017年3月11日 下午5:13:25
-	 */
-	private Iterator<Entry<K, V>> iterator(int kth) {
-		return new Itr(kth);
-	}
-
-	/**
 	 * 返回节点的颜色
 	 * 空节点为黑色
 	 * @param p
@@ -1037,146 +832,225 @@ public class RBTreeChart<K, V> implements IChart<K, V> {
 	}
 
 	/**
-	 * @see com.hdaheizi.base.stl.IChart#getSequenceList(int, int)
+	 * @see com.hdaheizi.base.stl.IChart#getRankInfo(java.lang.Object)
 	 */
 	@Override
-	public List<Tuple<K, V>> getSequenceList(int start, int end) {
-		List<Tuple<K, V>> list = new ArrayList<>();
-		int size = size();
-		int kth = start < 0 ? 0 : (start > size ? size : start);
-		Iterator<Entry<K, V>> it = iterator(kth);
-		while (it.hasNext() && ++kth <= end) {
-			list.add(it.next().tuple());
+	public int[] getRankInfo(V value) {
+		int[] info = new int[]{0, 0};
+		int cmp;
+		Node<K, V> p = root;
+		while (p != null) {
+			cmp = compare(value, p.first.value);
+			if (cmp == 0) {
+				info[0] += sizeOf(p.left);
+				info[1] = info[0] + p.amount;
+				break;
+			} else if (cmp < 0) {
+				p = p.left;
+			} else {
+				info[0] += sizeOf(p.left) + p.amount;
+				p = p.right;
+			}
 		}
-		return list;
+		return info;
 	}
 
 	/**
-	 * @see com.hdaheizi.base.stl.IChart#getRangeList(java.lang.Object, java.lang.Object)
+	 * @see com.hdaheizi.base.stl.IChart#getKth(int)
+	 */
+	public Tuple<K, V> getKth(int kth) {
+		if (kth > 0 && kth <= size()) {
+			return getKthEntry(kth).tuple();
+		}
+		return null;
+	}
+
+	/**
+	 * 返回名次为kth的数据实体，
+	 * kth越界则返回null
+	 * @param rank
+	 * @return
+	 * @Date 2017年3月23日 下午7:24:35
+	 */
+	private Entry<K, V> getKthEntry(int kth) {
+		Node<K, V> p = root;
+		int ls;
+		while (p != null) {
+			ls = sizeOf(p.left);
+			if (kth <= ls) {
+				p = p.left;
+			} else if (kth > ls + p.amount) {
+				kth -= ls + p.amount;
+				p = p.right;
+			} else {
+				kth -= ls;
+				return p.getKth(kth);
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * @see com.hdaheizi.base.stl.IChart#get(java.lang.Object)
 	 */
 	@Override
-	public List<Tuple<K, V>> getRangeList(V low, V high) {
-		int[] info1 = getRankInfo(low);
-		int start = info1[0];
-		int[] info2 = getRankInfo(high);
-		int end = info2[0] + info2[1];
-		return getSequenceList(start, end);
+	public V get(K key) {
+		Node<K, V> node = nodeMap.get(key);
+		return node == null ? null : node.getEntry(key).value;
 	}
+
+	/**
+	 * @see com.hdaheizi.base.stl.IChart#containsKey(java.lang.Object)
+	 */
+	@Override
+	public boolean containsKey(K key) {
+		return nodeMap.containsKey(key);
+	}
+
+	/**
+	 * @see com.hdaheizi.base.stl.IChart#size()
+	 */
+	@Override
+	public int size() {
+		return nodeMap.size();
+	}
+
+	/**
+	 * @see com.hdaheizi.base.stl.IChart#isEmpty()
+	 */
+	@Override
+	public boolean isEmpty() {
+		return root == null;
+	}
+
+	/**
+	 * @see com.hdaheizi.base.stl.IChart#clear()
+	 */
+	@Override
+	public void clear() {
+		modCount++;
+		root = null;
+		nodeMap.clear();
+	}
+
+	/**
+	 * @see com.hdaheizi.base.stl.IChart#iterator()
+	 */
+	@Override
+	public Itr iterator() {
+		return iterator(0);
+	}
+
+	/**
+	 * @see com.hdaheizi.base.stl.IChart#iterator(int)
+	 */
+	@Override
+	public Itr iterator(int kth) {
+		return new Itr(kth);
+	}
+
+	/**
+	 * 内部数据迭代器
+	 * @author daheiz
+	 * @Date 2017年3月14日 上午12:56:17
+	 */
+	private class Itr implements Iterator<Tuple<K, V>> {
+		/** 下一个node */
+		private Node<K, V> nextNode;
+		/** 下一个entry */
+		private Entry<K, V> nextEntry;
+		/** 上一个entry */
+		private Entry<K, V> lastEntry;
+		/** 期待的被修改次数 */
+		private int expectedModCount;
+
+		/**
+		 * 构造函数
+		 * @param 起始名次
+		 */
+		Itr(int kth) {
+			expectedModCount = modCount;
+			int size = size();
+			kth = kth < 0 ? 0 : (kth > size ? size : kth);
+			nextEntry = kth == size ? null : getKthEntry(kth + 1);
+			nextNode = nextEntry == null ? null : nodeMap.get(nextEntry.key);
+		}
+
+		/**
+		 * @see java.util.Iterator#hasNext()
+		 */
+		@Override
+		public final boolean hasNext() {
+			return nextNode != null;
+		}
+
+		/**
+		 * @see java.util.Iterator#next()
+		 */
+		@Override
+		public Tuple<K, V> next() {
+			return nextEntry().tuple();
+		}
+
+		/**
+		 * 下一个数据实体Entry，仅供内部使用
+		 * @return
+		 * @Date 2017年3月29日 上午12:31:02
+		 */
+		private final Entry<K, V> nextEntry() {
+			checkForComodification();
+			if (!hasNext()) {
+				throw new NoSuchElementException();
+			}
+			lastEntry = nextEntry;
+			if (nextEntry.next == nextNode.first) {
+				// 当前Node中最后一个entry
+				nextNode = successor(nextNode);
+				nextEntry = nextNode == null ? null : nextNode.first;
+			} else {
+				// 当前Node中的下一个Entry
+				nextEntry = nextEntry.next;
+			}
+			return lastEntry;
+		}
+
+		/**
+		 * @see java.util.Iterator#remove()
+		 */
+		@Override
+		public void remove() {
+			checkForComodification();
+			if (lastEntry == null) {
+				throw new IllegalStateException();
+			}
+			Node<K, V> lastNode = nodeMap.remove(lastEntry.key);
+			lastNode.removeEntry(lastEntry);
+			if (lastNode.first == null) {
+				deleteNode(lastNode);
+			} else {
+				fixNodeSizeUpward(lastNode);
+			}
+			lastEntry = null;
+			expectedModCount = ++modCount;
+		}
+
+		/**
+		 * 检查排行榜结构是否被修改
+		 * @Date 2017年3月14日 上午12:59:20
+		 */
+		private final void checkForComodification() {
+			if (modCount != expectedModCount) {
+				throw new ConcurrentModificationException();
+			}
+		}
+	}
+
+
+
 
 
 	/****************** 以下为一些非必需的辅助和测试方法 ***************************/
 
-	/**
-	 * 单元测试
-	 * @param args
-	 * @Date 2017年3月11日 下午5:07:33
-	 */
-	public static void main(String[] args) {
-		RBTreeChart<Integer, Tuple<Integer, Integer>> r2 = new RBTreeChart<>(
-				new Comparator<Tuple<Integer, Integer>>() {
-
-					@Override
-					public int compare(Tuple<Integer, Integer> o1,
-							Tuple<Integer, Integer> o2) {
-						return o1.left + o1.right - o2.left - o2.right;
-					}
-				});
-
-		for (int i = 1; i < 100; i++) {
-			r2.put(i, new Tuple<>(i, 100 - i));
-		}
-		System.out.println(r2.put(1, new Tuple<>(8, 5)));
-		System.out.println(r2.put(2, new Tuple<>(10, 80)));
-		System.out.println(r2.put(3, new Tuple<>(300, 0)));
-		System.out.println(r2.put(50, new Tuple<>(50, 90)));
-		System.out.println(r2.put(60, new Tuple<>(50, 90)));
-		System.out.println(r2.put(150, new Tuple<>(20, 90)));
-		System.out.println(r2.put(3, new Tuple<>(10, 90)));
-		System.out.println(Arrays.toString(r2.getSequenceList(-3, 6).toArray()));
-		System.out.println(r2.remove(2));
-		System.out.println(r2.remove(16));
-		Iterator<Entry<Integer, Tuple<Integer, Integer>>> it = r2.iterator(15);
-		while (it.hasNext()) {
-			Entry<Integer, Tuple<Integer, Integer>> e = it.next();
-			if (e.key >= 15 && e.key < 98) {
-				it.remove();
-			}
-		}
-		System.out.println(r2.remove(99));
-		System.out.println(r2.getKth(0));
-		System.out.println(r2.getKth(1));
-		System.out.println(r2.getKth(2));
-		System.out.println(r2.getKth(3));
-		System.out.println(r2.getKth(15));
-		System.out.println(r2.getKth(30));
-		System.out.println(r2.size());
-		r2.check();
-		System.out.println(Arrays.toString(r2.getSequenceList(1, 100).toArray()));
-		System.out.println(Arrays.toString(r2.getRangeList(new Tuple<>(80, 0), new Tuple<>(100, 0)).toArray()));
-		for (int i = 5; i < 15; i++) {
-			r2.put(i, new Tuple<>(i, i * 10 - i));
-		}
-		System.out.println(r2.outputTree());
-		System.exit(0);
-
-		
-		IChart<Integer, Integer> r = new RBTreeChart<>();
-		r.clear();
-		int num = 1000000;
-		Integer[] a = new Integer[num];
-		for (int i = 0; i < num; ++i) {
-			a[i] = i;
-		}
-		List<Integer> li = Arrays.asList(a);
-		// *****测试效率
-		System.out.println("****test speed, num :" + li.size() + " ,time unit: (ns)");
-
-		long ns1, ns2;
-		// 插入
-		Collections.shuffle(li);
-		ns1 = System.nanoTime();
-		for (Integer i : li) {
-			r.put(i, i / 10);
-		}
-		ns2 = System.nanoTime();
-		System.out.println("put: " + (ns2 - ns1) / num);
-
-		// 插入
-		Collections.shuffle(li);
-		ns1 = System.nanoTime();
-		for (Integer i : li) {
-			r.put(i, i / 10 + 1);
-		}
-		ns2 = System.nanoTime();
-		System.out.println("put: " + (ns2 - ns1) / num);
-
-		// 查找
-		Collections.shuffle(li);
-		ns1 = System.nanoTime();
-		for (Integer i : li) {
-			r.search(i);
-		}
-		ns2 = System.nanoTime();
-		System.out.println("search: " + (ns2 - ns1) / num);
-		// 顺次
-		Collections.shuffle(li);
-		ns1 = System.nanoTime();
-		for (int i = 1; i <= num; i++) {
-			r.getSequenceList(i, i);
-		}
-		ns2 = System.nanoTime();
-		System.out.println("kth:" + (ns2 - ns1) / num);
-		// 删除
-		Collections.shuffle(li);
-		ns1 = System.nanoTime();
-		for (Integer i : li) {
-			r.remove(i);
-		}
-		ns2 = System.nanoTime();
-		System.out.println("delete:" + (ns2 - ns1) / num);
-
-		System.exit(0);
-	}
 
 	/**
 	 * 生成红黑树的内部结构字符串
@@ -1187,7 +1061,7 @@ public class RBTreeChart<K, V> implements IChart<K, V> {
 		StringBuilder sb = new StringBuilder();
 		if (root != null) {
 			outputTreeImpl(sb, root.right, false, "");
-			sb.append(output(root));
+			buildNodeInfo(sb, root);
 			sb.append("\n");
 			outputTreeImpl(sb, root.left, true, "");
 			sb.setLength(sb.length() - 1);
@@ -1208,15 +1082,20 @@ public class RBTreeChart<K, V> implements IChart<K, V> {
 			outputTreeImpl(sb, p.right, false, indent + (left ? "|" : " ") + "    ");
 			sb.append(indent)
 			.append(left ? "\\" : "/")
-			.append("----")
-			.append(output(p));
+			.append("----");
+			buildNodeInfo(sb, p);
 			sb.append("\n");
 			outputTreeImpl(sb, p.left, true, indent + (left ? " " : "|") + "    ");
 		}
 	}
 
-	private String output(Node<K, V> p) {
-		StringBuilder sb = new StringBuilder();
+	/**
+	 * 构建节点信息
+	 * @param sb
+	 * @param p
+	 * @Date 2017年3月25日 下午5:59:48
+	 */
+	private void buildNodeInfo(StringBuilder sb, Node<K, V> p) {
 		sb.append("[");
 		if (p.first != null) {
 			Entry<K, V> e = p.first;
@@ -1232,7 +1111,6 @@ public class RBTreeChart<K, V> implements IChart<K, V> {
 		} else {
 			sb.setCharAt(lastCommaIndex, ']');
 		}
-		return sb.toString();
 	}
 
 	/**
@@ -1327,5 +1205,107 @@ public class RBTreeChart<K, V> implements IChart<K, V> {
 			p = p.right;
 		}
 		return bh;
+	}
+
+	/**
+	 * 单元测试
+	 * @param args
+	 * @Date 2017年3月11日 下午5:07:33
+	 */
+	public static void main(String[] args) {
+		RBTreeChart<Integer, Tuple<Integer, Integer>> r2 = new RBTreeChart<>(
+				new Comparator<Tuple<Integer, Integer>>() {
+
+					@Override
+					public int compare(Tuple<Integer, Integer> o1,
+							Tuple<Integer, Integer> o2) {
+						return o1.left + o1.right - o2.left - o2.right;
+					}
+				});
+
+		for (int i = 1; i < 100; i++) {
+			r2.put(i, new Tuple<>(i, 100 - i));
+		}
+		System.out.println(r2.put(1, new Tuple<>(8, 5)));
+		System.out.println(r2.put(2, new Tuple<>(10, 80)));
+		System.out.println(r2.put(3, new Tuple<>(300, 0)));
+		System.out.println(r2.put(50, new Tuple<>(50, 90)));
+		System.out.println(r2.put(60, new Tuple<>(50, 90)));
+		System.out.println(r2.put(150, new Tuple<>(20, 90)));
+		System.out.println(r2.put(3, new Tuple<>(10, 90)));
+		System.out.println(Arrays.toString(r2.getSequenceList(-3, 6).toArray()));
+		System.out.println(r2.remove(2));
+		System.out.println(r2.remove(16));
+		Iterator<Tuple<Integer, Tuple<Integer, Integer>>> it = r2.iterator(15);
+		while (it.hasNext()) {
+			Tuple<Integer, Tuple<Integer, Integer>> e = it.next();
+			if (e.left >= 15 && e.left < 98) {
+				it.remove();
+			}
+		}
+		System.out.println(r2.remove(99));
+		System.out.println(r2.getKth(0));
+		System.out.println(r2.getKth(1));
+		System.out.println(r2.getKth(2));
+		System.out.println(r2.getKth(3));
+		System.out.println(r2.getKth(15));
+		System.out.println(r2.getKth(30));
+		System.out.println(r2.size());
+		r2.check();
+		System.out.println(Arrays.toString(r2.getSequenceList(0, 100).toArray()));
+		System.out.println(Arrays.toString(r2.getRangeList(new Tuple<>(80, 0), new Tuple<>(100, 0)).toArray()));
+		for (int i = 5; i < 15; i++) {
+			r2.put(i, new Tuple<>(i, i * 10 - i));
+		}
+		System.out.println(r2.outputTree());
+
+		//		System.exit(0);
+
+		// *****测试效率
+		IChart<Integer, Integer> r = new RBTreeChart<>();
+		int num = 5000000;
+		Random random = new Random();
+		for (int i = 0; i < num; ++i) {
+			r.put(i, random.nextInt(num));
+		}
+		int times = num / 100;
+		System.out.println("****test speed, num :" + num + " ,time unit: (ns)");
+
+		long ns1, ns2;
+		// 插入
+		ns1 = System.nanoTime();
+		for (int i = 0; i < times; i++) {
+			int x = random.nextInt(num);
+			int y = random.nextInt(num) / 100;
+			r.put(x, y);
+		}
+		ns2 = System.nanoTime();
+		System.out.println("put: " + (ns2 - ns1) / times);
+
+		// 查找
+		ns1 = System.nanoTime();
+		for (int i = 0; i < times; i++) {
+			r.getRank(random.nextInt(num));
+		}
+		ns2 = System.nanoTime();
+		System.out.println("getRank: " + (ns2 - ns1) / times);
+
+		// 名次
+		ns1 = System.nanoTime();
+		for (int i = 1; i <= times; i++) {
+			r.getKth(random.nextInt(num));
+		}
+		ns2 = System.nanoTime();
+		System.out.println("getKth:" + (ns2 - ns1) / times);
+
+		// 删除
+		ns1 = System.nanoTime();
+		for (int i = 1; i <= times; i++) {
+			r.remove(random.nextInt(num));
+		}
+		ns2 = System.nanoTime();
+		System.out.println("delete:" + (ns2 - ns1) / times);
+
+		System.exit(0);
 	}
 }

@@ -168,9 +168,9 @@ interface B extends A {
     /**
      * 默认方法定义
      */
-    default void method() {
-        System.out.println("B's default method!");
-    }
+//    default void method() {
+//        System.out.println("B's default method!");
+//    }
 }
 
 interface C extends B {
@@ -178,9 +178,9 @@ interface C extends B {
     /**
      * 默认方法定义
      */
-    default void method() {
-        System.out.println("C's default method!");
-    }
+//    default void method() {
+//        System.out.println("C's default method!");
+//    }
 }
 
 interface D {
