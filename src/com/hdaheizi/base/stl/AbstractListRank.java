@@ -147,7 +147,7 @@ public abstract class AbstractListRank<K> implements IRank<K> {
 	}
 
 	/**
-	 * @see com.hdaheizi.base.stl.Rank#rankIterator()
+	 * @see com.hdaheizi.base.stl.IRank#rankIterator()
 	 */
 	@Override
 	public RankIterator<K> rankIterator() {
@@ -155,7 +155,7 @@ public abstract class AbstractListRank<K> implements IRank<K> {
 	}
 
 	/**
-	 * @see com.hdaheizi.base.stl.Rank#rankIterator(int)
+	 * @see com.hdaheizi.base.stl.IRank#rankIterator(int)
 	 */
 	@Override
 	public RankIterator<K> rankIterator(int rank) {

@@ -235,16 +235,18 @@ public class ConcurrentChart<K, V> implements IChart<K, V> {
 	 * @Date 2017年3月25日 下午6:26:04
 	 */
 	public static void main(String[] args) {
-		IChart<Integer, Integer> r = new ConcurrentChart<>(new RankChart<Integer, Integer>());
+		IChart<Integer, Integer> r = new ConcurrentChart<>(new RBTreeChart<Integer, Integer>());
 		
 		// *****压力测试
 		List<Long> timePool = new CopyOnWriteArrayList<>();
 		int num = 5000000;
-		System.out.println("****压力测试: 数据量 :" + num + " ,线程数目：10 ,时间单位: (纳秒)");
+		int density = 64;
+		int maxValue = num / density;
+		System.out.println("****压力测试: 数据量 :" + num + ", 数据密度 :" + density + ", 线程数目：10 , 时间单位: (纳秒)");
 		// 准备数据
 		Random random = new Random();
 		for (int i = 0; i < num; ++i) {
-			r.put(i, random.nextInt(num));
+			r.put(i, random.nextInt(maxValue));
 		}
 		int times = num / 100;
 		long tn1 = System.nanoTime();
@@ -255,7 +257,7 @@ public class ConcurrentChart<K, V> implements IChart<K, V> {
 				long ns1, ns2, ns = 0;
 				for (int i = 0; i < times; i++) {
 					int x = random.nextInt(num);
-					int y = random.nextInt(num) / 10;
+					int y = random.nextInt(maxValue);
 					ns1 = System.nanoTime();
 					r.put(x, y);
 					ns2 = System.nanoTime();
@@ -272,7 +274,7 @@ public class ConcurrentChart<K, V> implements IChart<K, V> {
 				long ns1, ns2, ns = 0;
 				for (int i = 0; i < times; i++) {
 					int x = random.nextInt(num);
-					int y = random.nextInt(num) + 23;
+					int y = random.nextInt(maxValue) + 23;
 					ns1 = System.nanoTime();
 					r.put(x, y);
 					ns2 = System.nanoTime();
