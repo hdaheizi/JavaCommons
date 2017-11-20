@@ -173,7 +173,7 @@ public class RBTreeChart<K, V> implements IChart<K, V> {
 			if (kth <= 0 || kth > amount) {
 				// 越界
 				return null;
-			} else if (kth > amount >>> 1) {
+			} else if (kth > amount >> 1) {
 				// kth > amount/2 逆向查找
 				for (Entry<K, V> e = first.prev; ; e = e.prev) {
 					if (kth++ == amount) {
