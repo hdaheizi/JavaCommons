@@ -42,5 +42,9 @@ Network Trash Folder
 Temporary Items
 .apdisk
 *.class
+<<<<<<< HEAD
 *.jar
 /bin/
+=======
+lib/com.hdaheizi.framework.jar
+>>>>>>> parent of d021f3f... 格式
