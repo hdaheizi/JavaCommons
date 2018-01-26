@@ -9,37 +9,37 @@ import org.daheiz.base.fight.event.FightEvent;
  */
 public interface GameState {
 
-	/**
-	 * 获取状态名称
-	 * @return
-	 * @Date 2016年5月22日 下午5:17:20
-	 */
-	String getName();
+    /**
+     * 获取状态名称
+     * @return
+     * @Date 2016年5月22日 下午5:17:20
+     */
+    String getName();
 
-	/**
-	 * 进入状态时
-	 * @Date 2016年5月22日 下午5:17:23
-	 */
-	void onEnter();
+    /**
+     * 进入状态时
+     * @Date 2016年5月22日 下午5:17:23
+     */
+    void onEnter();
 
-	/**
-	 * 退出状态时
-	 * @Date 2016年5月22日 下午5:17:26
-	 */
-	void onExit();
+    /**
+     * 退出状态时
+     * @Date 2016年5月22日 下午5:17:26
+     */
+    void onExit();
 
-	/**
-	 * 更新状态
-	 * @param dt
-	 * @Date 2016年5月22日 下午5:17:28
-	 */
-	void update(long dt);
+    /**
+     * 更新状态
+     * @param dt
+     * @Date 2016年5月22日 下午5:17:28
+     */
+    void update(long dt);
 
-	/**
-	 * 处理事件
-	 * @param event
-	 * @Date 2016年5月22日 下午5:17:31
-	 */
-	void handleEvent(FightEvent event);
+    /**
+     * 处理事件
+     * @param event
+     * @Date 2016年5月22日 下午5:17:31
+     */
+    void handleEvent(FightEvent event);
 
 }

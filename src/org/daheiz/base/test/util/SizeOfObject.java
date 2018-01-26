@@ -18,7 +18,7 @@ import java.util.Set;
 public class SizeOfObject {  
     static Instrumentation inst;  
     public static void main(String[] args){
-    	
+        
     }
     public static void premain(String args, Instrumentation instP) {  
         inst = instP;  

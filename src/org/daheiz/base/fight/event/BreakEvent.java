@@ -9,21 +9,21 @@ import org.daheiz.base.fight.skill.FightSkill;
  */
 public class BreakEvent extends FightEvent {
 
-	/** 打断级别 */
-	public int breakLv;
+    /** 打断级别 */
+    public int breakLv;
 
-	/** 打断来源 */
-	public FightSkill skill;
+    /** 打断来源 */
+    public FightSkill skill;
 
 
-	/**
-	 * 构造函数
-	 * @param breakLv
-	 * @param skill
-	 */
-	public BreakEvent(int breakLv, FightSkill skill){
-		this.breakLv = breakLv;
-		this.skill = skill;
-	}
+    /**
+     * 构造函数
+     * @param breakLv
+     * @param skill
+     */
+    public BreakEvent(int breakLv, FightSkill skill){
+        this.breakLv = breakLv;
+        this.skill = skill;
+    }
 
 }

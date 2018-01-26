@@ -6,15 +6,15 @@ package org.daheiz.base.sdata;
  * @Date 2016年7月10日 下午11:12:49
  */
 public class Unit {
-	
-	private int id;
+    
+    private int id;
 
-	public int getId() {
-		return id;
-	}
+    public int getId() {
+        return id;
+    }
 
-	public void setId(int id) {
-		this.id = id;
-	}
+    public void setId(int id) {
+        this.id = id;
+    }
 
 }

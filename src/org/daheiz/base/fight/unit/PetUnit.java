@@ -7,12 +7,12 @@ package org.daheiz.base.fight.unit;
  */
 public class PetUnit extends DefaultAIUnit {
 
-	/**
-	 * @see org.daheiz.base.fight.unit.DefaultAIUnit#isDead()
-	 */
-	@Override
-	public boolean isDead() {
-		return false;
-	}
+    /**
+     * @see org.daheiz.base.fight.unit.DefaultAIUnit#isDead()
+     */
+    @Override
+    public boolean isDead() {
+        return false;
+    }
 
 }

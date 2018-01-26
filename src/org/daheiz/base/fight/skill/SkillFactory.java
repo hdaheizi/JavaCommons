@@ -10,22 +10,22 @@ import org.daheiz.base.fight.unit.DefaultAIUnit;
 public class SkillFactory {
 
 
-	/**
-	 * 创建技能
-	 * @param hero
-	 * @param skill
-	 * @return
-	 * @Date 2016年7月13日 上午12:14:05
-	 */
-	public static FightSkill createSkill(DefaultAIUnit hero, SkillAttribute skill){
-		switch (skill.skill.getName().toLowerCase()) {
-		case "huoyanranshao":
-			return new Huoyanranshao(hero, skill);
-		case "liuxingchui":
-			return new Liuxingchui(hero, skill);
-		default:
-			return new CommSkill(hero, skill);
-		}
-	}
+    /**
+     * 创建技能
+     * @param hero
+     * @param skill
+     * @return
+     * @Date 2016年7月13日 上午12:14:05
+     */
+    public static FightSkill createSkill(DefaultAIUnit hero, SkillAttribute skill){
+        switch (skill.skill.getName().toLowerCase()) {
+        case "huoyanranshao":
+            return new Huoyanranshao(hero, skill);
+        case "liuxingchui":
+            return new Liuxingchui(hero, skill);
+        default:
+            return new CommSkill(hero, skill);
+        }
+    }
 
 }

@@ -10,14 +10,14 @@ import org.daheiz.base.fight.unit.DefaultAIUnit;
 public class Huoyanranshao extends CommSkill {
 
 
-	/**
-	 * 构造函数
-	 * @param hero
-	 * @param skillAttribute
-	 */
-	public Huoyanranshao(DefaultAIUnit hero, SkillAttribute skillAttribute) {
-		super(hero, skillAttribute);
-	}
+    /**
+     * 构造函数
+     * @param hero
+     * @param skillAttribute
+     */
+    public Huoyanranshao(DefaultAIUnit hero, SkillAttribute skillAttribute) {
+        super(hero, skillAttribute);
+    }
 
 
 }

@@ -9,15 +9,15 @@ import org.daheiz.base.fight.skill.SkillAttribute;
  */
 public class SkillEvent extends FightEvent {
 
-	/** 技能属性配置 */
-	public SkillAttribute skill;
+    /** 技能属性配置 */
+    public SkillAttribute skill;
 
 
-	/**
-	 * 构造函数
-	 * @param skillId
-	 */
-	public SkillEvent(SkillAttribute skill) {
-		this.skill = skill;
-	}
+    /**
+     * 构造函数
+     * @param skillId
+     */
+    public SkillEvent(SkillAttribute skill) {
+        this.skill = skill;
+    }
 }

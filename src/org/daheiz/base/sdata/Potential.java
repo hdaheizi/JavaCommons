@@ -7,37 +7,37 @@ package org.daheiz.base.sdata;
  */
 public class Potential {
 
-	/** id */
-	private int id;
-	
-	/** 名称 */
-	private String name;
-	
-	/** 参数字串 */
-	private String paramStr;
+    /** id */
+    private int id;
+    
+    /** 名称 */
+    private String name;
+    
+    /** 参数字串 */
+    private String paramStr;
 
-	
-	public int getId() {
-		return id;
-	}
+    
+    public int getId() {
+        return id;
+    }
 
-	public void setId(int id) {
-		this.id = id;
-	}
+    public void setId(int id) {
+        this.id = id;
+    }
 
-	public String getName() {
-		return name;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public String getParamStr() {
-		return paramStr;
-	}
+    public String getParamStr() {
+        return paramStr;
+    }
 
-	public void setParamStr(String paramStr) {
-		this.paramStr = paramStr;
-	} 
+    public void setParamStr(String paramStr) {
+        this.paramStr = paramStr;
+    } 
 }

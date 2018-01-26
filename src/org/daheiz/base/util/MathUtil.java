@@ -7,15 +7,15 @@ package org.daheiz.base.util;
  */
 public class MathUtil {
 
-	/**
-	 * 四舍五入精确到n位小数
-	 * @param number
-	 * @param digit
-	 * @return
-	 * @Date 2017年2月27日 下午6:35:19
-	 */
-	public static double demical(double number, int digit){
-		double multiples = Math.pow(10, digit);
-		return Math.round(number * multiples) / multiples;
-	}
+    /**
+     * 四舍五入精确到n位小数
+     * @param number
+     * @param digit
+     * @return
+     * @Date 2017年2月27日 下午6:35:19
+     */
+    public static double demical(double number, int digit){
+        double multiples = Math.pow(10, digit);
+        return Math.round(number * multiples) / multiples;
+    }
 }

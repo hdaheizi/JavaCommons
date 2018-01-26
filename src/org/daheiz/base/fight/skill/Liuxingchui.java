@@ -9,12 +9,12 @@ import org.daheiz.base.fight.unit.DefaultAIUnit;
  */
 public class Liuxingchui extends CommSkill {
 
-	/**
-	 * 构造函数
-	 * @param hero
-	 * @param skillAttribute
-	 */
-	public Liuxingchui(DefaultAIUnit hero, SkillAttribute skillAttribute) {
-		super(hero, skillAttribute);
-	}
+    /**
+     * 构造函数
+     * @param hero
+     * @param skillAttribute
+     */
+    public Liuxingchui(DefaultAIUnit hero, SkillAttribute skillAttribute) {
+        super(hero, skillAttribute);
+    }
 }

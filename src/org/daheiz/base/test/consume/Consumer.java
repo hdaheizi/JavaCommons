@@ -1,4 +1,4 @@
-package org.daheiz.base.consume;
+package org.daheiz.base.test.consume;
 
 /**
  * 消费者
@@ -13,14 +13,14 @@ public class Consumer extends ProducerOrConsumer {
    * @param storage 所在仓库
    */
   public Consumer(int x, int num, Storage storage) {
-	  super(x, num, storage);
-	}
+      super(x, num, storage);
+    }
 
-	/**
-	 * 调用仓库Storage的消费函数  
-	 * @param x 编号
-	 * @param num 数量
-	 */
+    /**
+     * 调用仓库Storage的消费函数  
+     * @param x 编号
+     * @param num 数量
+     */
     public void producerorconsumer(int x,int num) {  
         getStorage().consume(x,num);  
         
